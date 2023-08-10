@@ -1,0 +1,7 @@
+exec_time	5.761984
+exec_time	6.284782
+exec_time	5.784094
+exec_time	5.614658
+exec_time	5.727895
+exec_time	5.867198
+exec_time	5.827095

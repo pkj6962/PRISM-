@@ -80,9 +80,17 @@ void Dedupe::layout_analysis(filesystem::directory_entry entry, vector<vector<ob
 			this->task_cnt ++; 
 
 			task_queue[task->ost].push_back(task); 
-		
+
+
+			// load balancing code 
+			uint64_t object_task_size = (end - start) / count; 
+			this->size_per_ost[task->ost] += object_task_size; 
+			this->size_per_rank[task->ost % (worldSize-1) + 1] += object_task_size; 
+
+
+
 			// If task queue is full, then we send the tasks in the queue to corresponding Reader Process. 
-			if (task_queue[task->ost].size() == TASK_QUEUE_FULL)
+			if (!load_balance && task_queue[task->ost].size() == TASK_QUEUE_FULL)
 			{
 				
 				char * Msg = object_task_queue_clear(task_queue[task->ost], NULL); 
@@ -118,6 +126,8 @@ void Dedupe::layout_end_of_process(vector<vector<object_task*>> &task_queue){
 	char termination_task[20];
 	strcpy(termination_task, TERMINATION_MSG);
 
+	printf("this line entered\n");
+
 	for (int ost = 0; ost < OST_NUMBER; ost++)
 	{
 		char * Msg = object_task_queue_clear(task_queue[ost], &task_num); 
@@ -125,7 +135,9 @@ void Dedupe::layout_end_of_process(vector<vector<object_task*>> &task_queue){
 			cout << "Msg is NULL\n";
 			continue;
 		}	
-		int rc = MPI_Ssend(Msg, sizeof(object_task) * TASK_QUEUE_FULL, MPI_CHAR, ost % (worldSize-1) + 1, task_num, MPI_COMM_WORLD); 
+		printf("task_num: %d\n", task_num);
+		int rc = MPI_Ssend(Msg, sizeof(object_task) * task_num, MPI_CHAR, ost % (worldSize-1) + 1, task_num, MPI_COMM_WORLD); 
+		//int rc = MPI_Ssend(Msg, sizeof(object_task) * TASK_QUEUE_FULL, MPI_CHAR, ost % (worldSize-1) + 1, task_num, MPI_COMM_WORLD); 
 		if (rc != MPI_SUCCESS)
 			cout << "MPI Send Failed\n";
 		
@@ -144,8 +156,60 @@ void Dedupe::Msg_Push(char * buffer, char * Msg, int idx){
 	memcpy(Msg + idx * sizeof(object_task), buffer, sizeof(object_task)); 
 }
 
+
+// Load Balancing code
+void * Dedupe:: object_task_load_balance(vector<vector<object_task*>>& task_queue)
+{
+	auto compareSecondElement =
+			[](const std::pair<int, uint64_t>& p1, const std::pair<int, uint64_t>& p2) {
+					        return p1.second > p2.second; 
+							// ">" for ascending order, "<" for descending order
+			};
+	priority_queue<pair<int, uint64_t>, vector<pair<int, uint64_t>>, decltype(compareSecondElement)> total_size_per_rank(compareSecondElement);
+	
+	for (int i = 1; i < worldSize; i++)
+	{
+		auto p = make_pair(i, 0);
+		total_size_per_rank.push(p);
+	}
+	sort(this->size_per_ost, this->size_per_ost + OST_NUMBER, greater<uint64_t>());
+	
+	int task_num;
+		  
+			 // Distribute tasks from each OST to the rank whose size is minimal. 
+	for (int i = 0; i < OST_NUMBER; i++)
+	{
+		// Get the rank which contains least size of tasks.
+		pair<int, uint64_t> p = total_size_per_rank.top();
+		total_size_per_rank.pop();
+		int rank = p.first;
+
+		char * Msg = object_task_queue_clear(task_queue[i], &task_num);
+		
+
+		int rc = MPI_Send(Msg, sizeof(object_task) * task_num, MPI_CHAR, rank, task_num, MPI_COMM_WORLD);
+		if (rc != MPI_SUCCESS)
+			cout << "MPI Send Failed\n";
+
+		p.second += this->size_per_ost[i];
+		total_size_per_rank.push(p); 
+	}
+
+	for(int i = 0; i < this->worldSize-1; i++)
+	{
+		pair<int, uint64_t> p = total_size_per_rank.top();
+		total_size_per_rank.pop();
+										
+		printf("rank\t%d\tsize\t%llu\n", p.first, p.second);
+	}// test purpose code
+	
+
+}
+
 char * Dedupe::object_task_queue_clear(vector<object_task*> &task_queue, int *task_num){
-	char * Msg = new char[sizeof(object_task) * TASK_QUEUE_FULL];
+	
+	char * Msg = new char[sizeof(object_task) * task_queue.size()]; 
+	//char * Msg = new char[sizeof(object_task) * TASK_QUEUE_FULL];
 	if (Msg == nullptr){
 		cout << "Memory allocation error\n"; 
 		return nullptr;

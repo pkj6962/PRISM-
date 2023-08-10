@@ -144,21 +144,30 @@ namespace danzer{
     int ost_cnt = 0;
     int rank = 0;
     int obj_cnt = 0;
-    int numWorkers = 0;
+    int numWorkers = 1;
 	uint64_t task_cnt = 0;
 	uint64_t task_cnt_per_rank = 0; 
+
+	// variable for load balance functionality
+	int load_balance = 1; 
+	uint64_t *size_per_rank;
+	vector <object_task> tasks_per_ost [OST_NUMBER];
+	uint64_t size_per_ost[OST_NUMBER] = {0};
+
+
 
   public:
     fcdc_ctx fastcdc_init(uint32_t min_ch, uint32_t avg_ch, uint32_t max_ch);
     size_t fastcdc_update(fcdc_ctx *ctx, uint8_t *data, size_t len, int end, chunk_vec *cv);
     size_t fastcdc_stream(FILE *stream, uint32_t min_ch, uint32_t avg_ch, uint32_t max_ch, chunk_vec *cv);
         
-    Dedupe(int chunk_mode_from, int ch_size, int fp_mode, string outfile, int numWorkers){
+    Dedupe(int chunk_mode_from, int ch_size, int fp_mode, string outfile, int numWorkers, int load_balance){
       chunk_mode = chunk_mode_from;
       chunk_size = ch_size;
       this->fp_mode = fp_mode;
       output_file = outfile;
       this->numWorkers = numWorkers;
+	  this->load_balance = load_balance; 
     }
     void chunk_full_file(string file_name, ofstream&);
     void chunk_fixed_size(const string &buffer, uint64_t obj_size);
@@ -180,11 +189,22 @@ namespace danzer{
     object_task dequeue(OST_queue *ost_q);
     void initializeq(int ostPerRank);
 
+
+
+
     //void layout_analysis(std::filesystem::directory_entry entry); 
     void layout_analysis (filesystem::directory_entry entry, vector <vector <object_task*>> &task_queue); 
     void layout_end_of_process(vector<vector<object_task*>> & task_queue); 
     object_task* object_task_generate(const char* file_path, int ost, uint64_t start, uint64_t end, uint64_t interval, uint64_t size); 
-    void object_task_insert(object_task * task, vector<object_task*>); 
+	
+	// load balance distribution code 
+	void* object_task_load_balance(vector<vector<object_task*>>& task_queue);
+    
+	template<typename T, typename Compare>
+	void * Dedupe:: init_rank_allocator (priority_queue<T, vector<T>, Compare>& rank_allocator);
+	
+		
+	void object_task_insert(object_task * task, vector<object_task*>); 
     char * object_task_queue_clear (vector<object_task *> &task_queue, int * task_num); 
     //string object_task_serialization (object_task * task); 
     void object_task_serialization (object_task * task, char* buffer); 

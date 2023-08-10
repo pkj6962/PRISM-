@@ -607,32 +607,42 @@ namespace danzer
         int msg_cnt, task_num;
 	int total_cnt = 0;
         MPI_Status status;
-        char * buffer = (char*)malloc(sizeof(object_task) * TASK_QUEUE_FULL);
+        
+		char * buffer = (char*)malloc(sizeof(object_task) * 500);
+		//char * buffer = (char*)malloc(sizeof(object_task) * TASK_QUEUE_FULL);
         if (buffer == NULL)
             cout << "Memory allocation error\n";
         while(1) {
-	    int flag;
-	    MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, &status);
-	    if(flag){
-	    	int msg_size;
-			MPI_Get_elements(&status, MPI_CHAR, &msg_size);
-            	int rc = MPI_Recv(buffer, msg_size, MPI_CHAR, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-		if (rc != MPI_SUCCESS)
-		{
-			cout << "receive error: " << errno << this->rank << endl; 
-		}
+			int flag;
+			MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+			//MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, &status);
+            task_num = status.MPI_TAG;
+			
+			int rc; 
+			if(task_num){
+				int msg_size;
+				MPI_Get_elements(&status, MPI_CHAR, &msg_size);
+            	rc = MPI_Recv(buffer, sizeof(object_task) * task_num, MPI_CHAR, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);	
+            	//rc = MPI_Recv(buffer, msg_size, MPI_CHAR, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);	
+			}else
+			{
+				rc = MPI_Recv(buffer, sizeof(object_task) * strlen(TERMINATION_MSG), MPI_CHAR, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);	
+			}	
+			if (rc != MPI_SUCCESS)
+			{
+				cout << "receive error: " << errno << this->rank << endl; 
+			}
             if (strncmp(buffer, TERMINATION_MSG, strlen(TERMINATION_MSG)) == 0) {
                 shutdown_flag = true;
 				cout << "comm terminated " << rank << endl;
 				break;
             }
-            MPI_Get_count(&status, MPI_CHAR, &msg_cnt);  
-            task_num = status.MPI_TAG;
+            //MPI_Get_count(&status, MPI_CHAR, &msg_cnt);  
             object_tasks_decomposition(buffer, task_num);
 //			this->task_cnt_per_rank += task_num; 
 		}
-        }
-	free(buffer);
+        
+		free(buffer);
         return NULL;
     }
 
@@ -760,7 +770,7 @@ namespace danzer
 				cout << "worker woke up!\n"; 
 			}
 			//pthread_mutex_unlock(&buffer->mutex);
-            		if(reader_done && !buffer->filled){
+            if(reader_done && !buffer->filled){
 				pthread_mutex_unlock(&buffer->mutex);
 				break;
 			}
@@ -768,7 +778,7 @@ namespace danzer
 			chunk_fixed_size(str, buffer->size);
 			work_cnt += 1; 
 
-        		buffer->filled = 0;            	
+        	buffer->filled = 0;            	
 			worker_idx = (worker_idx + numWorkers) % POOL_SIZE;
 			
 			pthread_cond_signal(&buffer->cond);
@@ -827,14 +837,26 @@ namespace danzer
 
         if (rank == MASTER){
             vector <vector <object_task*>> task_queue(OST_NUMBER); 
-            for (const auto &dir_entry: filesystem::recursive_directory_iterator(directory_path)){
+			
+			// test purpose code: load_balance test 
+			size_per_rank = (uint64_t *)malloc(sizeof(uint64_t) * worldSize); 
+			if (size_per_rank == NULL)
+			{
+				cout << "memory allocation error";
+				exit(1); 
+			}
+			memset(size_per_rank, 0, sizeof(uint64_t) * worldSize); 
+			
+			
+			
+			for (const auto &dir_entry: filesystem::recursive_directory_iterator(directory_path)){
                 total_file ++ ;
 
                 if(filesystem::is_symlink(dir_entry)){
                     cout << "Symlink encountered\n"; 
                     continue; 
                 }
-
+				
                 if(dir_entry.is_regular_file()){
                     layout_analysis(dir_entry, task_queue);
                     continue;
@@ -842,7 +864,13 @@ namespace danzer
 
                 unchecked_file ++ ; 
             }
-            printf("unchecked file: %d/%d\n", unchecked_file, total_file); 
+			
+			if (load_balance)
+			{
+				object_task_load_balance(task_queue); 
+			}
+			
+			printf("unchecked file: %d/%d\n", unchecked_file, total_file); 
             printf("user-configured PFL file: %d\n", this->non_default_pfl); 
             printf("total_file_size: %lld\n", total_file_size); 
 			
@@ -853,7 +881,7 @@ namespace danzer
         else{
             // Mutex initialization
             for (int i = 0; i < POOL_SIZE; i++) {
-		bufferpool[i].filled = 0;
+				bufferpool[i].filled = 0;
                 pthread_mutex_init(&bufferpool[i].mutex, NULL);
                 pthread_cond_init(&bufferpool[i].cond, NULL);
             }
@@ -868,23 +896,24 @@ namespace danzer
             this->initializeq(ostPerRank);	    
 
             pthread_t comm, reader, worker;
-
+			
             int rc1 = pthread_create(&comm, NULL, Dedupe::commThreadStarter, this);
             if(rc1) {
                 cout << "error: thread creation " << rc1 << endl;
                 exit(-1);
             }
-		
+	/*
             int rc2 = pthread_create(&reader, NULL, Dedupe::readerThreadStarter, this);
             if(rc2) {
                 cout << "error: thread creation " << rc2 << endl;
                 exit(-1);
             }
-
-
+	*/		
+		printf("numworkers:%d\n", numWorkers) ;
+		printf("loadbalance: %d\n", load_balance);
 	    vector<pthread_t> workerThreads(numWorkers);
-            vector<ThreadArgs> threadArgs(numWorkers);	
-
+        vector<ThreadArgs> threadArgs(numWorkers);	
+	/*	
 	    for(int i = 0; i < numWorkers; i++) {
                 threadArgs[i].instance = this;
                 threadArgs[i].index = i;
@@ -895,22 +924,22 @@ namespace danzer
                     exit(-1);
                 }
             }	
-
-	
+	*/	
             (void)pthread_join(comm, NULL);
-         
+      /*   
 			(void)pthread_join(reader, NULL);
    //         (void)pthread_join(worker, NULL);
 
-	for(int i = 0; i < numWorkers; i++) {
+		for(int i = 0; i < numWorkers; i++) {
                 int rc = pthread_join(workerThreads[i], NULL);
                 if (rc){
                     cout << "error: thread join" << rc << endl;
                     exit(-1);
                 }
-            }		
-		
+        }		
+	*/
         }
+	
         // Finalize MPI environment
         MPI_Finalize();
 
@@ -973,8 +1002,9 @@ int main(int argc, char **argv)
     int c;
     int fstat_flag = 0;
     int rank;
-    int numWorkers = 0;
-    while ((c = getopt(argc, argv, "f:s:m:i:o:t:")) != -1)
+    int numWorkers = 1;
+	int load_balance = 1; 
+    while ((c = getopt(argc, argv, "f:s:m:i:o:t:l:")) != -1)
     {
         switch (c)
         {
@@ -992,8 +1022,12 @@ int main(int argc, char **argv)
             break;
         case 'o':
             output_file = optarg;
-	case 't':
-	    numWorkers = atoi(optarg);	    
+			break; 
+		case 't':
+			numWorkers = atoi(optarg);	    
+            break;
+		case 'l':
+			load_balance = atoi(optarg);	    
             break;
         default:
             break;
@@ -1062,7 +1096,7 @@ int main(int argc, char **argv)
 
     else
     {
-        danzer::Dedupe *dedup = new danzer::Dedupe(chunk_mode, chunk_size, 0, output_file, numWorkers);
+        danzer::Dedupe *dedup = new danzer::Dedupe(chunk_mode, chunk_size, 0, output_file, numWorkers, load_balance);
 
         rank = dedup->traverse_directory(directory_path);
     }

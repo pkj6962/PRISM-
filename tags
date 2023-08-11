@@ -17,7 +17,7 @@ CFLAGS	Makefile	/^CFLAGS=-std=c++17 -O0 -g -fpermissive$/;"	m
 CFLAGS	ana-prism/Makefile	/^CFLAGS=-std=c++17 -O3 -g$/;"	m
 ChunkData	mpitracer.h	/^    ChunkData(){$/;"	f	class:danzer::ChunkData
 ChunkData	mpitracer.h	/^  class ChunkData{$/;"	c	namespace:danzer
-Dedupe	mpitracer.h	/^    Dedupe(int chunk_mode_from, int ch_size, int fp_mode, string outfile, int numWorkers){$/;"	f	class:danzer::Dedupe
+Dedupe	mpitracer.h	/^    Dedupe(int chunk_mode_from, int ch_size, int fp_mode, string outfile, int numWorkers, int load_balance){$/;"	f	class:danzer::Dedupe
 Dedupe	mpitracer.h	/^  class Dedupe{$/;"	c	namespace:danzer
 FASTCDC_CLAMP	mpitracer.cc	7;"	d	file:
 FASTCDC_CLAMP	old_mpitracer.cc	7;"	d	file:
@@ -142,7 +142,7 @@ kvec_t	uthash.h	57;"	d
 layout_analysis	master.cc	/^void Dedupe::layout_analysis(filesystem::directory_entry entry, vector<vector<object_task*>> &task_queue){$/;"	f	class:danzer::Dedupe
 layout_end_of_process	master.cc	/^void Dedupe::layout_end_of_process(vector<vector<object_task*>> &task_queue){$/;"	f	class:danzer::Dedupe
 len	mpitracer.h	/^    size_t len;$/;"	m	struct:danzer::__anon2
-load_balance	mpitracer.h	/^	bool load_balance = 1; $/;"	m	class:danzer::Dedupe
+load_balance	mpitracer.h	/^	int load_balance = 1; $/;"	m	class:danzer::Dedupe
 ma	mpitracer.h	/^    uint32_t ma;$/;"	m	struct:danzer::__anon1
 main	ana-prism/p_analyze.cc	/^int main(int argc, char *argv[])$/;"	f
 main	mpitracer.cc	/^int main(int argc, char **argv)$/;"	f
@@ -171,6 +171,7 @@ object_task_buffer_free	master.cc	/^void Dedupe::object_task_buffer_free (char *
 object_task_deserialization	master.cc	/^object_task * Dedupe::object_task_deserialization(const char* buffer){$/;"	f	class:danzer::Dedupe
 object_task_generate	master.cc	/^object_task* Dedupe::object_task_generate(const char * file_path, int ost, uint64_t start, uint64_t end, uint64_t interval, uint64_t size){$/;"	f	class:danzer::Dedupe
 object_task_insert	master.cc	/^void Dedupe::object_task_insert(object_task* task, vector<object_task*> queue){$/;"	f	class:danzer::Dedupe
+object_task_load_balance	master.cc	/^void * Dedupe:: object_task_load_balance(vector<vector<object_task*>>& task_queue)$/;"	f	class:danzer::Dedupe
 object_task_queue_clear	master.cc	/^char * Dedupe::object_task_queue_clear(vector<object_task*> &task_queue, int *task_num){$/;"	f	class:danzer::Dedupe
 object_task_serialization	master.cc	/^void Dedupe:: object_task_serialization(object_task* task, char * buffer)$/;"	f	class:danzer::Dedupe
 object_tasks_decomposition	mpitracer.cc	/^    void Dedupe::object_tasks_decomposition(const char* Msg, int cnt){$/;"	f	class:danzer::Dedupe

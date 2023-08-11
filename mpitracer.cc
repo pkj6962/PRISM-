@@ -608,7 +608,7 @@ namespace danzer
 	int total_cnt = 0;
         MPI_Status status;
         
-		char * buffer = (char*)malloc(sizeof(object_task) * 500);
+		char * buffer = (char*)malloc(sizeof(object_task) * 1500);
 		//char * buffer = (char*)malloc(sizeof(object_task) * TASK_QUEUE_FULL);
         if (buffer == NULL)
             cout << "Memory allocation error\n";
@@ -621,12 +621,19 @@ namespace danzer
 			int rc; 
 			if(task_num){
 				int msg_size;
-				MPI_Get_elements(&status, MPI_CHAR, &msg_size);
+				//MPI_Get_elements(&status, MPI_CHAR, &msg_size);
             	rc = MPI_Recv(buffer, sizeof(object_task) * task_num, MPI_CHAR, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);	
             	//rc = MPI_Recv(buffer, msg_size, MPI_CHAR, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);	
 			}else
 			{
+
+				//rc = MPI_Recv(buffer, 5, MPI_CHAR, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);	
 				rc = MPI_Recv(buffer, sizeof(object_task) * strlen(TERMINATION_MSG), MPI_CHAR, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);	
+		
+				// Temporary code: Bug should be fixed. 
+				//shutdown_flag = flag; 
+				//break; 
+
 			}	
 			if (rc != MPI_SUCCESS)
 			{
@@ -831,8 +838,8 @@ namespace danzer
 
         MPI_Comm_size(MPI_COMM_WORLD, &worldSize);
         MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	this->worldSize = worldSize;
-	this->rank = rank;
+		this->worldSize = worldSize;
+		this->rank = rank;
         cout << "Current process rank: " << this->rank << endl;
 
         if (rank == MASTER){
@@ -849,6 +856,8 @@ namespace danzer
 			
 			
 			
+			auto start = chrono::high_resolution_clock::now();
+			
 			for (const auto &dir_entry: filesystem::recursive_directory_iterator(directory_path)){
                 total_file ++ ;
 
@@ -864,7 +873,8 @@ namespace danzer
 
                 unchecked_file ++ ; 
             }
-			
+		
+
 			if (load_balance)
 			{
 				object_task_load_balance(task_queue); 
@@ -902,18 +912,18 @@ namespace danzer
                 cout << "error: thread creation " << rc1 << endl;
                 exit(-1);
             }
-	/*
+	
             int rc2 = pthread_create(&reader, NULL, Dedupe::readerThreadStarter, this);
             if(rc2) {
                 cout << "error: thread creation " << rc2 << endl;
                 exit(-1);
             }
-	*/		
+			
 		printf("numworkers:%d\n", numWorkers) ;
 		printf("loadbalance: %d\n", load_balance);
 	    vector<pthread_t> workerThreads(numWorkers);
         vector<ThreadArgs> threadArgs(numWorkers);	
-	/*	
+		
 	    for(int i = 0; i < numWorkers; i++) {
                 threadArgs[i].instance = this;
                 threadArgs[i].index = i;
@@ -924,9 +934,9 @@ namespace danzer
                     exit(-1);
                 }
             }	
-	*/	
+	
             (void)pthread_join(comm, NULL);
-      /*   
+      
 			(void)pthread_join(reader, NULL);
    //         (void)pthread_join(worker, NULL);
 
@@ -937,7 +947,7 @@ namespace danzer
                     exit(-1);
                 }
         }		
-	*/
+	
         }
 	
         // Finalize MPI environment

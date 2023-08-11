@@ -198,11 +198,8 @@ namespace danzer{
     object_task* object_task_generate(const char* file_path, int ost, uint64_t start, uint64_t end, uint64_t interval, uint64_t size); 
 	
 	// load balance distribution code 
-	void* object_task_load_balance(vector<vector<object_task*>>& task_queue);
+	void object_task_load_balance(vector<vector<object_task*>>& task_queue);
     
-	template<typename T, typename Compare>
-	void * Dedupe:: init_rank_allocator (priority_queue<T, vector<T>, Compare>& rank_allocator);
-	
 		
 	void object_task_insert(object_task * task, vector<object_task*>); 
     char * object_task_queue_clear (vector<object_task *> &task_queue, int * task_num); 

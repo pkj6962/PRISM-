@@ -1,0 +1,51 @@
+Directory traversing started
+Directory traversing started
+Directory traversing started
+Directory traversing started
+thread support 3
+Current process rank: 0
+thread support 3
+Current process rank: 2
+thread support 3
+Current process rank: 3
+thread support 3
+Current process rank: 1
+Hello world!
+new ost queue
+serial exectime:1.69172e+09
+serial  exec time	1691720525.823130
+new ost queue
+new ost queue
+new ost queue
+new ost queue
+new ost queue
+new ost queue
+new ost queue
+new ost queue
+new ost queue
+new ost queue
+new ost queue
+new ost queue
+new ost queue
+new ost queue
+new ost queue
+new ost queue
+new ost queue
+new ost queue
+new ost queue
+new ost queue
+new ost queue
+new ost queue
+new ost queue
+master1 exec time	2.504922
+unchecked file: 372/4650
+user-configured PFL file: 0
+total_file_size: 248458783301
+comm terminated 1
+comm terminated 3
+comm terminated 2
+this line entered
+termination msg sent
+termination msg sent
+termination msg sent
+Execution time: 3.45547 seconds

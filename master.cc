@@ -11,6 +11,15 @@ namespace danzer {
 void Dedupe::layout_analysis(filesystem::directory_entry entry, vector<vector<object_task*>> &task_queue){
 //void layout_analysis(fs::directory_entry entry){
 //int main(){
+
+	chrono::high_resolution_clock::time_point start_time, end_time; 
+	static int traverse_cnt = 0; 
+	if (traverse_cnt == 0)
+	{
+		traverse_cnt ++; 
+		cout << "Hello world!\n"; 
+		start_time = chrono::high_resolution_clock::now();
+	}
 	int rc[5];
 	uint64_t count = 0, size, start, end, idx, offset, interval, file_size;  
 	struct stat64 sb; 
@@ -51,8 +60,6 @@ void Dedupe::layout_analysis(filesystem::directory_entry entry, vector<vector<ob
 		// Get stripe count, stripe size, and range(in terms of the size) of the layout. 
 		rc[0] = llapi_layout_stripe_count_get(layout, &count);
 		rc[1] = llapi_layout_stripe_size_get(layout, &size); 
-		//if (size != 1048576)
-		//	this->non_default_pfl ++; 
 		rc[2] = llapi_layout_comp_extent_get(layout, &start, &end);
 		if (rc[0] || rc[1] || rc[2]) 
 		{
@@ -71,7 +78,6 @@ void Dedupe::layout_analysis(filesystem::directory_entry entry, vector<vector<ob
 			// If OST information cannot be taken, it means that we get all the OST idx that stores the object of the file and we can break out of the loop. 
 			if (rc[0]){
 				//cout << "error: cannot get ost index\n"; 
-				// TODO: Change log message 
 				goto here_exit; 
 			}
 			
@@ -92,16 +98,15 @@ void Dedupe::layout_analysis(filesystem::directory_entry entry, vector<vector<ob
 			// If task queue is full, then we send the tasks in the queue to corresponding Reader Process. 
 			if (!load_balance && task_queue[task->ost].size() == TASK_QUEUE_FULL)
 			{
-				
+		
 				char * Msg = object_task_queue_clear(task_queue[task->ost], NULL); 
 				
 				// Send Msg to Read Processes(whose rank is OST_NUMBER & Read_Process_Num)
 				// MPI_SEND
-				//int rc = MPI_SUCCESS; 
 				int rc = MPI_Ssend(Msg, sizeof(object_task) * TASK_QUEUE_FULL, MPI_CHAR, task->ost % (worldSize-1) + 1, TASK_QUEUE_FULL, MPI_COMM_WORLD); 
 				if (rc != MPI_SUCCESS)
 					cout << "MPI Send Failed\n"; 
-				
+			
 				//free(Msg); 
 			//	delete(Msg); 
 				delete[] Msg;
@@ -126,7 +131,6 @@ void Dedupe::layout_end_of_process(vector<vector<object_task*>> &task_queue){
 	char termination_task[20];
 	strcpy(termination_task, TERMINATION_MSG);
 
-	printf("this line entered\n");
 
 	for (int ost = 0; ost < OST_NUMBER; ost++)
 	{
@@ -135,8 +139,7 @@ void Dedupe::layout_end_of_process(vector<vector<object_task*>> &task_queue){
 			cout << "Msg is NULL\n";
 			continue;
 		}	
-		printf("task_num: %d\n", task_num);
-		int rc = MPI_Ssend(Msg, sizeof(object_task) * task_num, MPI_CHAR, ost % (worldSize-1) + 1, task_num, MPI_COMM_WORLD); 
+		int rc = MPI_Send(Msg, sizeof(object_task) * task_num, MPI_CHAR, ost % (worldSize-1) + 1, task_num, MPI_COMM_WORLD); 
 		//int rc = MPI_Ssend(Msg, sizeof(object_task) * TASK_QUEUE_FULL, MPI_CHAR, ost % (worldSize-1) + 1, task_num, MPI_COMM_WORLD); 
 		if (rc != MPI_SUCCESS)
 			cout << "MPI Send Failed\n";
@@ -145,7 +148,7 @@ void Dedupe::layout_end_of_process(vector<vector<object_task*>> &task_queue){
 
 	}
 	for(int i=1; i < worldSize; i++) {
-    		MPI_Send(termination_task, sizeof(termination_task), MPI_CHAR, i, 0, MPI_COMM_WORLD);
+    	MPI_Send(termination_task, sizeof(TERMINATION_MSG), MPI_CHAR, i, 0, MPI_COMM_WORLD);
 		cout << "termination msg sent\n";
 	}
 }
@@ -158,7 +161,7 @@ void Dedupe::Msg_Push(char * buffer, char * Msg, int idx){
 
 
 // Load Balancing code
-void * Dedupe:: object_task_load_balance(vector<vector<object_task*>>& task_queue)
+void  Dedupe:: object_task_load_balance(vector<vector<object_task*>>& task_queue)
 {
 	auto compareSecondElement =
 			[](const std::pair<int, uint64_t>& p1, const std::pair<int, uint64_t>& p2) {
@@ -186,7 +189,7 @@ void * Dedupe:: object_task_load_balance(vector<vector<object_task*>>& task_queu
 
 		char * Msg = object_task_queue_clear(task_queue[i], &task_num);
 		
-
+		printf("task_num: %d\n", task_num); 
 		int rc = MPI_Send(Msg, sizeof(object_task) * task_num, MPI_CHAR, rank, task_num, MPI_COMM_WORLD);
 		if (rc != MPI_SUCCESS)
 			cout << "MPI Send Failed\n";
@@ -194,15 +197,31 @@ void * Dedupe:: object_task_load_balance(vector<vector<object_task*>>& task_queu
 		p.second += this->size_per_ost[i];
 		total_size_per_rank.push(p); 
 	}
-
-	for(int i = 0; i < this->worldSize-1; i++)
+	
+	// Test Code 
+	/*
+	printf("per ost\n"); 
+	for(int i = 0; i < OST_NUMBER; i++)
 	{
+		printf("ost\t%d\t%lld\n", i, size_per_ost[i]); 
+	}
+
+
+	 printf("Before Load Balance\n");
+	 for (int i = 1; i <= this->worldSize-1; i++)
+	{
+		printf("rank\t%dsize\t%llu\n", i, this->size_per_rank[i]);
+	}
+	
+	 printf("After Load Balance\n"); 
+	 for(int i = 0; i < this->worldSize-1; i++)
+	 {
 		pair<int, uint64_t> p = total_size_per_rank.top();
 		total_size_per_rank.pop();
 										
 		printf("rank\t%d\tsize\t%llu\n", p.first, p.second);
-	}// test purpose code
-	
+	 }// test purpose code
+	*/
 
 }
 

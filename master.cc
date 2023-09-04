@@ -11,7 +11,9 @@ namespace danzer {
 void Dedupe::layout_analysis(filesystem::directory_entry entry, vector<vector<object_task*>> &task_queue){
 //void layout_analysis(fs::directory_entry entry){
 //int main(){
-
+	
+	// static vector<uint64_t> num_tasks_per_ost (OST_NUMBER, 0);
+	
 	chrono::high_resolution_clock::time_point start_time, end_time; 
 	static int traverse_cnt = 0; 
 	if (traverse_cnt == 0)
@@ -25,7 +27,11 @@ void Dedupe::layout_analysis(filesystem::directory_entry entry, vector<vector<ob
 	struct stat64 sb; 
 	object_task * task;
 	int worldSize = this->worldSize; 
+	int worker_number = worldSize - 1; 
+
 	int readerNum = 10; // TODO should be checked during runtime
+	
+
 
 	//vector <vector <struct object_task*>> task_queue(OST_NUMBER); 
 	
@@ -100,10 +106,25 @@ void Dedupe::layout_analysis(filesystem::directory_entry entry, vector<vector<ob
 			{
 		
 				char * Msg = object_task_queue_clear(task_queue[task->ost], NULL); 
+				int dest_rank, num_binded_worker; 
 				
+				// IF the number of OST exceeds the number of worker process, then Each OST is binded only to one worker process. 
+				if (OST_NUMBER >= worker_number)
+					dest_rank = task->ost % worker_number; 
+				else // Otherwise, more than two worker process is binded to one OST, so tasks should be passed in round robin manner. 
+				{	
+					int remainder = task->ost < (worker_number % OST_NUMBER)? 1:0;
+					num_binded_worker =  worker_number / OST_NUMBER + remainder;
+					dest_rank = (num_tasks_per_ost[task->ost] % num_binded_worker) * OST_NUMBER + task->ost;   
+				}
+				num_tasks_per_ost[task->ost] += 1; 
+				printf("job: %d %d %d | %d %d\n", task->ost, dest_rank, num_binded_worker, worker_number, OST_NUMBER); 
+
+
 				// Send Msg to Read Processes(whose rank is OST_NUMBER & Read_Process_Num)
 				// MPI_SEND
-				int rc = MPI_Ssend(Msg, sizeof(object_task) * TASK_QUEUE_FULL, MPI_CHAR, task->ost % (worldSize-1) + 1, TASK_QUEUE_FULL, MPI_COMM_WORLD); 
+				int rc = MPI_Ssend(Msg, sizeof(object_task) * TASK_QUEUE_FULL, MPI_CHAR, dest_rank, TASK_QUEUE_FULL, MPI_COMM_WORLD); 
+				// int rc = MPI_Ssend(Msg, sizeof(object_task) * TASK_QUEUE_FULL, MPI_CHAR, task->ost % (worldSize-1) + 1, TASK_QUEUE_FULL, MPI_COMM_WORLD); 
 				if (rc != MPI_SUCCESS)
 					cout << "MPI Send Failed\n"; 
 			
@@ -139,16 +160,32 @@ void Dedupe::layout_end_of_process(vector<vector<object_task*>> &task_queue){
 			cout << "Msg is NULL\n";
 			continue;
 		}	
-		int rc = MPI_Send(Msg, sizeof(object_task) * task_num, MPI_CHAR, ost % (worldSize-1) + 1, task_num, MPI_COMM_WORLD); 
-		//int rc = MPI_Ssend(Msg, sizeof(object_task) * TASK_QUEUE_FULL, MPI_CHAR, ost % (worldSize-1) + 1, task_num, MPI_COMM_WORLD); 
-		if (rc != MPI_SUCCESS)
-			cout << "MPI Send Failed\n";
+		
+		int dest_rank, num_binded_worker; 
+		int worker_number = worldSize - 1; 
+
+		if (OST_NUMBER >= worker_number)
+			dest_rank = ost % worker_number; 
+		else // Otherwise, more than two worker process is binded to one OST, so tasks should be passed in round robin manner. 
+		{	
+			int remainder = ost < (worker_number % OST_NUMBER)? 1:0;
+			num_binded_worker =  worker_number / OST_NUMBER + remainder;
+			dest_rank = (num_tasks_per_ost[ost] % num_binded_worker) * OST_NUMBER + ost;   
+
+		
+		
+		}		
+		int rc = MPI_Ssend(Msg, sizeof(object_task) * task_num, MPI_CHAR, dest_rank, task_num, MPI_COMM_WORLD); 
+		// int rc = MPI_Ssend(Msg, sizeof(object_task) * task_num, MPI_CHAR, ost % (worldSize-1) + 1, task_num, MPI_COMM_WORLD); 
+		//int rc = MPI_Ssend(Msg, s	izeof(object_task) * TASK_QUEUE_FULL, MPI_CHAR, ost % (worldSize-1) + 1, task_num, MPI_COMM_WORLD); 
+		// if (rc != MPI_SUCCESS)
+			// cout << "MPI Send Failed\n";
 		
 		object_task_buffer_free(Msg); 
 
 	}
 	for(int i=1; i < worldSize; i++) {
-    	MPI_Send(termination_task, sizeof(TERMINATION_MSG), MPI_CHAR, i, 0, MPI_COMM_WORLD);
+    	MPI_Ssend(termination_task, sizeof(TERMINATION_MSG), MPI_CHAR, i, 0, MPI_COMM_WORLD);
 		cout << "termination msg sent\n";
 	}
 }

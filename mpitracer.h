@@ -105,7 +105,7 @@ namespace danzer{
         uint64_t end; // end offset
         uint64_t interval;
         uint64_t size; 
-	char file_path[MAX_FILE_PATH_LEN]; 
+	      char file_path[MAX_FILE_PATH_LEN]; 
     } object_task;
 
     typedef struct{
@@ -145,14 +145,31 @@ namespace danzer{
     int rank = 0;
     int obj_cnt = 0;
     int numWorkers = 1;
-	uint64_t task_cnt = 0;
-	uint64_t task_cnt_per_rank = 0; 
+	  uint64_t task_cnt = 0;
+	  uint64_t task_cnt_per_rank = 0; 
 
 	// variable for load balance functionality
 	int load_balance = 1; 
 	uint64_t *size_per_rank;
 	vector <object_task> tasks_per_ost [OST_NUMBER];
 	uint64_t size_per_ost[OST_NUMBER] = {0};
+
+
+  // test code 
+  uint64_t test_chunk_cnt = 0; 
+
+  // variable for configuration of Number of IO Threads (more than the number of OST)
+  
+  uint64_t num_tasks_per_ost [OST_NUMBER] = {0};
+
+
+  /*
+  int * num_binded_workers_per_ost;
+  int workers_num;  
+  */
+
+
+
 
 
 
@@ -167,7 +184,11 @@ namespace danzer{
       this->fp_mode = fp_mode;
       output_file = outfile;
       this->numWorkers = numWorkers;
-	  this->load_balance = load_balance; 
+	    this->load_balance = load_balance; 
+      
+
+
+
     }
     void chunk_full_file(string file_name, ofstream&);
     void chunk_fixed_size(const string &buffer, uint64_t obj_size);

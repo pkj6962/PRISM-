@@ -605,8 +605,10 @@ namespace danzer
 
     void* Dedupe::commThread() {
         int msg_cnt, task_num;
-	int total_cnt = 0;
+	    int total_cnt = 0;
         MPI_Status status;
+
+        static int test_total_task = 0; 
         
 		char * buffer = (char*)malloc(sizeof(object_task) * 1500);
 		//char * buffer = (char*)malloc(sizeof(object_task) * TASK_QUEUE_FULL);
@@ -622,11 +624,17 @@ namespace danzer
 			if(task_num){
 				int msg_size;
 				//MPI_Get_elements(&status, MPI_CHAR, &msg_size);
-            	rc = MPI_Recv(buffer, sizeof(object_task) * task_num, MPI_CHAR, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);	
+            	if (task_num != TASK_QUEUE_FULL)
+                {
+                    printf("rank%d ost cleared\n", rank); 
+                }
+                
+                
+                rc = MPI_Recv(buffer, sizeof(object_task) * task_num, MPI_CHAR, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);	
             	//rc = MPI_Recv(buffer, msg_size, MPI_CHAR, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);	
 			}else
 			{
-
+                printf("term message has come\n"); 
 				//rc = MPI_Recv(buffer, 5, MPI_CHAR, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);	
 				rc = MPI_Recv(buffer, sizeof(object_task) * strlen(TERMINATION_MSG), MPI_CHAR, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);	
 		
@@ -642,10 +650,12 @@ namespace danzer
             if (strncmp(buffer, TERMINATION_MSG, strlen(TERMINATION_MSG)) == 0) {
                 shutdown_flag = true;
 				cout << "comm terminated " << rank << endl;
-				break;
+				printf("rank\t%d\ttask_num\t%d\n", rank, test_total_task); 
+                break;
             }
             //MPI_Get_count(&status, MPI_CHAR, &msg_cnt);  
             object_tasks_decomposition(buffer, task_num);
+            test_total_task += task_num; 
 //			this->task_cnt_per_rank += task_num; 
 		}
         
@@ -658,9 +668,9 @@ namespace danzer
         const char * p = Msg; 
         for (int i = 0; i < cnt; i++){
             task = object_task_deserialization(p);
-	    if(task == NULL){
-		cout << "Deserialization failed\n";
-	    }
+	        if(task == NULL){
+		    cout << "Deserialization failed\n";
+	        }
             p += sizeof(object_task); 
             
             // Check if this ost have been seen
@@ -674,8 +684,12 @@ namespace danzer
             }
 
             int local_ost_idx = ost_map[task->ost];
-	    if(local_ost_idx >= ost_q.size())
-			cout <<"invalid index\n";
+	        if(local_ost_idx >= ost_q.size())
+            {
+			    // cout <<"invalid index\n";
+                // Test code
+                printf("invalid index: %d %d \n", local_ost_idx, ost_q.size()); 
+            }
             enqueue(&(this->ost_q[local_ost_idx]), *task);
         }
 	return;
@@ -683,8 +697,9 @@ namespace danzer
 
         void* Dedupe::readerThread() {
       	    object_task metadata;
-	    Buffer * buffer; 
-	int ostPerRank = this->ostPerRank;
+	        Buffer * buffer; 
+	        int ostPerRank = this->ostPerRank;
+        
         while(1) {
             bool taskFound = false;
             for (int i = 0; i < ostPerRank; i++) {
@@ -810,6 +825,7 @@ namespace danzer
 				}
 			} 
 		}
+        printf("rank\t%d\tchunk_cnt\t%d\n", rank, test_chunk_cnt); 
 	    return NULL;
     }
 
@@ -825,16 +841,18 @@ namespace danzer
     }
 
     int Dedupe::traverse_directory(string directory_path){
+
         cout << "Directory traversing started" << endl;
 
+
         // Initialize MPI environment
-	int provided;
+	    int provided;
         MPI_Init_thread(NULL, NULL, MPI_THREAD_MULTIPLE, &provided);
-	cout << "thread support " <<provided << endl;
+	    cout << "thread support " <<provided << endl;
         // Get rank and world size
         int rank, worldSize;
         int unchecked_file = 0;
-	int numWorkers = this->numWorkers;
+	    int numWorkers = this->numWorkers;
 
         MPI_Comm_size(MPI_COMM_WORLD, &worldSize);
         MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -844,7 +862,10 @@ namespace danzer
 
         if (rank == MASTER){
             vector <vector <object_task*>> task_queue(OST_NUMBER); 
-			
+			// vector<uint64_t> num_tasks_per_ost (OST_NUMBER, 0);
+
+
+
 			// test purpose code: load_balance test 
 			size_per_rank = (uint64_t *)malloc(sizeof(uint64_t) * worldSize); 
 			if (size_per_rank == NULL)
@@ -853,7 +874,9 @@ namespace danzer
 				exit(1); 
 			}
 			memset(size_per_rank, 0, sizeof(uint64_t) * worldSize); 
-			
+
+
+
 			
 			
 			auto start = chrono::high_resolution_clock::now();
@@ -880,13 +903,15 @@ namespace danzer
 				object_task_load_balance(task_queue); 
 			}
 			
+            layout_end_of_process(task_queue); 
+
+
 			printf("unchecked file: %d/%d\n", unchecked_file, total_file); 
             printf("user-configured PFL file: %d\n", this->non_default_pfl); 
             printf("total_file_size: %lld\n", total_file_size); 
 			
 //			printf("master task_cnt: %lld\n", this->task_cnt);
 
-            layout_end_of_process(task_queue); 
         }
         else{
             // Mutex initialization
@@ -896,11 +921,17 @@ namespace danzer
                 pthread_cond_init(&bufferpool[i].cond, NULL);
             }
 
-
-            int ostPerRank = OST_NUMBER / (worldSize-1);
-            int remainder = OST_NUMBER % (worldSize-1);
-            if(rank < remainder){
-                ostPerRank++;
+            if (OST_NUMBER > worldSize-1)
+            {
+                int ostPerRank = OST_NUMBER / (worldSize-1);
+                int remainder = OST_NUMBER % (worldSize-1);
+                if(rank < remainder){
+                    ostPerRank++;
+                }
+            }
+            else // When the number of worker process exceeds the number of OST. 
+            {
+                ostPerRank = 1; 
             }
             this->ostPerRank = ostPerRank;
             this->initializeq(ostPerRank);	    
@@ -935,17 +966,17 @@ namespace danzer
                 }
             }	
 	
-            (void)pthread_join(comm, NULL);
+        (void)pthread_join(comm, NULL);
       
-			(void)pthread_join(reader, NULL);
-   //         (void)pthread_join(worker, NULL);
+		(void)pthread_join(reader, NULL);
+        // // (void)pthread_join(worker, NULL);
 
 		for(int i = 0; i < numWorkers; i++) {
-                int rc = pthread_join(workerThreads[i], NULL);
-                if (rc){
-                    cout << "error: thread join" << rc << endl;
-                    exit(-1);
-                }
+            int rc = pthread_join(workerThreads[i], NULL);
+            if (rc){
+                cout << "error: thread join" << rc << endl;
+                exit(-1);
+            }
         }		
 	
         }
@@ -957,7 +988,7 @@ namespace danzer
 
     }
     void Dedupe::chunk_fixed_size(const string &buffer, uint64_t obj_size){
-        cout << "chunk_fixed_size entered" << endl;
+
         uint64_t o_size = obj_size;
 		this->obj_cnt++;
         if (buffer.empty() || o_size == 0){
@@ -970,15 +1001,16 @@ namespace danzer
         //cout << "start fingerprinting" << endl;
         while (o_pos < o_size){
 	
-	    uint64_t cur_chunk_size = min(static_cast<uint64_t>(chunk_size), o_size -o_pos);
+	        uint64_t cur_chunk_size = min(static_cast<uint64_t>(chunk_size), o_size -o_pos);
             string chunk = buffer.substr(o_pos, cur_chunk_size);
-	    if(cur_chunk_size < chunk_size){
-		chunk+= string(chunk_size - cur_chunk_size, '0');
-	    }	
-	    o_pos += chunk_size;
+	        if(cur_chunk_size < chunk_size){
+		        chunk += string(chunk_size - cur_chunk_size, '0');
+	        }	
+	        o_pos += chunk_size;
 
             unsigned char temp_fp[SHA_DIGEST_LENGTH];
             SHA1(reinterpret_cast<const unsigned char *>(chunk.c_str()), chunk_size, temp_fp);
+            test_chunk_cnt ++; 
             string fp = GetHexRepresentation(temp_fp, SHA_DIGEST_LENGTH);
 
             fingerprints.push_back(fp);
@@ -1005,6 +1037,7 @@ namespace danzer
 
 int main(int argc, char **argv)
 {
+
     uint64_t chunk_size = 0;
     string directory_path;
     string output_file;

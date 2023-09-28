@@ -695,11 +695,19 @@ namespace danzer
 	return;
     }
 
-        void* Dedupe::readerThread() {
-      	    object_task metadata;
-	        Buffer * buffer; 
-	        int ostPerRank = this->ostPerRank;
+    void* Dedupe::readerThread() {
+        object_task metadata;
+        Buffer * buffer; 
+        int ostPerRank = this->ostPerRank;
+
+
+		// Code for LoadStandardization Evaluation 
+		int datasetIdx = dataset_map.find(Dataset.c_str())->second; 
+        uint64_t standardized_load_size = StandardizedTaskSizePer24Process[datasetIdx];   
+        uint64_t total_read_size = 0; 
+        bool standardized_task_done = false; 
         
+
         while(1) {
             bool taskFound = false;
             for (int i = 0; i < ostPerRank; i++) {
@@ -721,13 +729,14 @@ namespace danzer
 						//return NULL;
                     }
                     
-					for(uint64_t offset = metadata.start; offset < metadata.end; offset += metadata.interval)			{
+					for(uint64_t offset = metadata.start; offset < metadata.end; offset += metadata.interval)			
+                    {
 			
                         buffer = &bufferpool[reader_idx];
 						
 						pthread_mutex_lock(&buffer->mutex);
                 //        while((reader_idx +1)% POOL_SIZE == worker_idx && buffer->filled) {
-				while(buffer->filled){
+						while(buffer->filled){
 							cout << "reader waiting for buffer to be emptied " << rank << endl;
                        		pthread_cond_wait(&buffer->cond, &buffer->mutex);
 							cout << "reader escaped : " << rank << endl;	
@@ -737,7 +746,9 @@ namespace danzer
 						
 						//   if(buffer!= nullptr && buffer->data != nullptr){
 			            uint64_t size = (offset + metadata.size > metadata.end)? (metadata.end - offset):metadata.size; 
-			            ssize_t bytesRead = pread(fd, buffer->data, size, offset); 
+			            
+						
+						ssize_t bytesRead = pread(fd, buffer->data, size, offset); 
                         if (bytesRead == -1) {
                             perror("Error reading file");
                             exit(1);
@@ -748,19 +759,45 @@ namespace danzer
                             buffer->data[bytesRead] = '\0';
                         buffer->size = bytesRead;
                      //   }
+
                         
-						
+                       
 						reader_idx = (reader_idx + 1) % POOL_SIZE;
 						pthread_cond_signal(&buffer->cond);	
 						pthread_mutex_unlock(&buffer->mutex);
+                    
+                    
+						// Code for LoadStandarization Evaluation     
+						total_read_size += bytesRead;
+						if (total_read_size >= standardized_load_size)
+						{
+							standardized_task_done = true; 
+							taskFound = false; 
+							break; 
+						}	
+						 
                     }
                     close(fd);
+
+					// Code for Load Standardization Evaluation
+					if (standardized_task_done)
+					{
+						break; 
+					}
+				
+
                 }
-            }// end of for
+				
+				if (standardized_task_done)
+				{
+					break; 
+				}
+				
+            }// end of for (looking for each OST Queue)
 
             if (shutdown_flag && !taskFound) {
 				reader_done = true;
-				printf("reader done %d\n", this->rank); 
+				printf("reader done %d: %lld\n", this->rank, total_read_size); 
 //				pthread_cond_signal(&buffer->cond); 
 
 				for(Buffer &b : bufferpool){
@@ -843,7 +880,11 @@ namespace danzer
     int Dedupe::traverse_directory(string directory_path){
 
         cout << "Directory traversing started" << endl;
+	
 
+		size_t lastSlashPos = directory_path.find_last_of('/'); 
+		Dataset = directory_path.substr(lastSlashPos + 1); 
+		
 
         // Initialize MPI environment
 	    int provided;
@@ -897,7 +938,7 @@ namespace danzer
                 unchecked_file ++ ; 
             }
 		
-
+			
 			if (load_balance)
 			{
 				object_task_load_balance(task_queue); 
@@ -907,6 +948,18 @@ namespace danzer
 
 			
 			test_load_balance_per_rank(); 
+			
+
+            /*
+
+            Iterate and Receive message from worker process so that 
+
+            TODO: How to end this process? Maybe Worker process sends message with tag so that master can end.
+
+            */
+
+
+
 
 
 
@@ -941,13 +994,13 @@ namespace danzer
             this->initializeq(ostPerRank);	    
 
             pthread_t comm, reader, worker;
-			
+    
             int rc1 = pthread_create(&comm, NULL, Dedupe::commThreadStarter, this);
             if(rc1) {
                 cout << "error: thread creation " << rc1 << endl;
                 exit(-1);
             }
-	/*
+	
             int rc2 = pthread_create(&reader, NULL, Dedupe::readerThreadStarter, this);
             if(rc2) {
                 cout << "error: thread creation " << rc2 << endl;
@@ -970,10 +1023,10 @@ namespace danzer
                 }
             }	
 	
-	*/
+	
         (void)pthread_join(comm, NULL);
       
-	/*
+	
 		(void)pthread_join(reader, NULL);
         // // (void)pthread_join(worker, NULL);
 
@@ -984,8 +1037,8 @@ namespace danzer
                 exit(-1);
             }
         }		
-	*/
-
+    
+    
         }
 	
         // Finalize MPI environment

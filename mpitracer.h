@@ -26,6 +26,8 @@
 #include <atomic>
 #include <lustre/lustreapi.h>
 #include <fcntl.h>
+#include <boost/assign/list_of.hpp>
+
 
 #define QUEUE_SIZE 100 // # of metadata(object info) within queue
 #define BUFFER_SIZE 2097152 // 2M buffer
@@ -35,6 +37,8 @@
 #define MAX_FILE_PATH_LEN 320 //320
 #define MASTER 0
 #define TERMINATION_MSG "TERMINATION"
+#define MB (uint64_t)1048576
+
 
 using namespace std;
 
@@ -163,13 +167,29 @@ namespace danzer{
   uint64_t num_tasks_per_ost [OST_NUMBER] = {0};
 
 
-  /*
-  int * num_binded_workers_per_ost;
-  int workers_num;  
-  */
+	string Dataset; 
+	enum dataset{
+		mpas=0, grims, qchem, nastran, roms, abaqus, lammps, qe, qmc, pytorch
+	}; 
+	map<string, dataset> dataset_map = boost::assign::map_list_of
+		("mpas", mpas)("grims", grims)("nastran", nastran)("roms", roms)("abaqus", abaqus)("lammps", lammps)("qe", qe)("qmc", qmc)("pytorch", pytorch); 
 
 
+	uint64_t StandardizedTaskSizePer24Process[10] =
+		{
+			917 * MB,	// mpas 
+			335 * MB,	// grims
+			3342 * MB,	// qchem
+			53 * MB,	// nastran
+			5260 * MB,	// roms
+			10975 * MB,	// abaqus
+			351 * MB,	// lammps
+			8796 * MB,	// qe
+			82 * MB,	// qmc
+			10 * MB		// pytorch
+		};
 
+	
 
 
 

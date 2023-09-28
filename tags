@@ -5,216 +5,446 @@
 !_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
 !_TAG_PROGRAM_VERSION	5.8	//
 .DEFAULT_GOAL	Makefile	/^.DEFAULT_GOAL := all$/;"	m
-.DEFAULT_GOAL	ana-prism/Makefile	/^.DEFAULT_GOAL := all$/;"	m
+.DEFAULT_GOAL	PRISM-/Makefile	/^.DEFAULT_GOAL := all$/;"	m
+.DEFAULT_GOAL	PRISM-/ana-prism/Makefile	/^.DEFAULT_GOAL := all$/;"	m
+AC_KVEC_H	PRISM-/uthash.h	49;"	d
 AC_KVEC_H	uthash.h	49;"	d
+AVERAGE_MAX	PRISM-/mpitracer.cc	12;"	d	file:
+AVERAGE_MAX	PRISM-/old_mpitracer.cc	12;"	d	file:
 AVERAGE_MAX	mpitracer.cc	12;"	d	file:
 AVERAGE_MAX	old_mpitracer.cc	12;"	d	file:
+AVERAGE_MIN	PRISM-/mpitracer.cc	11;"	d	file:
+AVERAGE_MIN	PRISM-/old_mpitracer.cc	11;"	d	file:
 AVERAGE_MIN	mpitracer.cc	11;"	d	file:
 AVERAGE_MIN	old_mpitracer.cc	11;"	d	file:
-BUFFER_SIZE	mpitracer.h	31;"	d
-Buffer	mpitracer.h	/^    } Buffer;$/;"	t	namespace:danzer	typeref:struct:danzer::__anon5
+BUFFER_SIZE	PRISM-/mpitracer.h	31;"	d
+BUFFER_SIZE	mpitracer.h	33;"	d
+Buffer	PRISM-/mpitracer.h	/^    } Buffer;$/;"	t	namespace:danzer	typeref:struct:danzer::__anon5
+Buffer	mpitracer.h	/^    } Buffer;$/;"	t	namespace:danzer	typeref:struct:danzer::__anon11
 CFLAGS	Makefile	/^CFLAGS=-std=c++17 -O0 -g -fpermissive$/;"	m
-CFLAGS	ana-prism/Makefile	/^CFLAGS=-std=c++17 -O3 -g$/;"	m
+CFLAGS	PRISM-/Makefile	/^CFLAGS=-std=c++17 -O0 -g -fpermissive$/;"	m
+CFLAGS	PRISM-/ana-prism/Makefile	/^CFLAGS=-std=c++17 -O3 -g$/;"	m
+ChunkData	PRISM-/mpitracer.h	/^    ChunkData(){$/;"	f	class:danzer::ChunkData
+ChunkData	PRISM-/mpitracer.h	/^  class ChunkData{$/;"	c	namespace:danzer
 ChunkData	mpitracer.h	/^    ChunkData(){$/;"	f	class:danzer::ChunkData
 ChunkData	mpitracer.h	/^  class ChunkData{$/;"	c	namespace:danzer
+Dataset	mpitracer.h	/^	string Dataset; $/;"	m	class:danzer::Dedupe
+Dedupe	PRISM-/mpitracer.h	/^    Dedupe(int chunk_mode_from, int ch_size, int fp_mode, string outfile, int numWorkers, int load_balance){$/;"	f	class:danzer::Dedupe
+Dedupe	PRISM-/mpitracer.h	/^  class Dedupe{$/;"	c	namespace:danzer
 Dedupe	mpitracer.h	/^    Dedupe(int chunk_mode_from, int ch_size, int fp_mode, string outfile, int numWorkers, int load_balance){$/;"	f	class:danzer::Dedupe
 Dedupe	mpitracer.h	/^  class Dedupe{$/;"	c	namespace:danzer
+FASTCDC_CLAMP	PRISM-/mpitracer.cc	7;"	d	file:
+FASTCDC_CLAMP	PRISM-/old_mpitracer.cc	7;"	d	file:
 FASTCDC_CLAMP	mpitracer.cc	7;"	d	file:
 FASTCDC_CLAMP	old_mpitracer.cc	7;"	d	file:
+FASTCDC_DIVCEIL	PRISM-/mpitracer.cc	8;"	d	file:
+FASTCDC_DIVCEIL	PRISM-/old_mpitracer.cc	8;"	d	file:
 FASTCDC_DIVCEIL	mpitracer.cc	8;"	d	file:
 FASTCDC_DIVCEIL	old_mpitracer.cc	8;"	d	file:
+FASTCDC_MASK	PRISM-/mpitracer.cc	9;"	d	file:
+FASTCDC_MASK	PRISM-/old_mpitracer.cc	9;"	d	file:
 FASTCDC_MASK	mpitracer.cc	9;"	d	file:
 FASTCDC_MASK	old_mpitracer.cc	9;"	d	file:
+FP_MD5	PRISM-/mpitracer.h	/^     FP_MD5$/;"	e	enum:danzer::fingerprint_modes
 FP_MD5	mpitracer.h	/^     FP_MD5$/;"	e	enum:danzer::fingerprint_modes
+FP_SHA1	PRISM-/mpitracer.h	/^     FP_SHA1,$/;"	e	enum:danzer::fingerprint_modes
 FP_SHA1	mpitracer.h	/^     FP_SHA1,$/;"	e	enum:danzer::fingerprint_modes
+FP_SHA256	PRISM-/mpitracer.h	/^     FP_SHA256,$/;"	e	enum:danzer::fingerprint_modes
 FP_SHA256	mpitracer.h	/^     FP_SHA256,$/;"	e	enum:danzer::fingerprint_modes
+FP_SHA512	PRISM-/mpitracer.h	/^     FP_SHA512,$/;"	e	enum:danzer::fingerprint_modes
 FP_SHA512	mpitracer.h	/^     FP_SHA512,$/;"	e	enum:danzer::fingerprint_modes
+FStat	PRISM-/mpitracer.h	/^    FStat () {$/;"	f	class:danzer::FStat
+FStat	PRISM-/mpitracer.h	/^  class FStat$/;"	c	namespace:danzer
 FStat	mpitracer.h	/^    FStat () {$/;"	f	class:danzer::FStat
 FStat	mpitracer.h	/^  class FStat$/;"	c	namespace:danzer
+FULL_FILE	PRISM-/mpitracer.h	/^        FULL_FILE$/;"	e	enum:danzer::chunk_size
 FULL_FILE	mpitracer.h	/^        FULL_FILE$/;"	e	enum:danzer::chunk_size
+GEAR	PRISM-/mpitracer.cc	/^    static const uint32_t GEAR[] = {$/;"	m	namespace:danzer	file:
+GEAR	PRISM-/old_mpitracer.cc	/^    static const uint32_t GEAR[] = {$/;"	m	namespace:danzer	file:
 GEAR	mpitracer.cc	/^    static const uint32_t GEAR[] = {$/;"	m	namespace:danzer	file:
 GEAR	old_mpitracer.cc	/^    static const uint32_t GEAR[] = {$/;"	m	namespace:danzer	file:
+GetHexRepresentation	PRISM-/mpitracer.cc	/^    string Dedupe::GetHexRepresentation(const unsigned char *Bytes, size_t Length)$/;"	f	class:danzer::Dedupe
+GetHexRepresentation	PRISM-/old_mpitracer.cc	/^    string Dedupe::GetHexRepresentation(const unsigned char *Bytes, size_t Length)$/;"	f	class:danzer::Dedupe
 GetHexRepresentation	mpitracer.cc	/^    string Dedupe::GetHexRepresentation(const unsigned char *Bytes, size_t Length)$/;"	f	class:danzer::Dedupe
 GetHexRepresentation	old_mpitracer.cc	/^    string Dedupe::GetHexRepresentation(const unsigned char *Bytes, size_t Length)$/;"	f	class:danzer::Dedupe
 INCLUDES	Makefile	/^INCLUDES=-.\/include$/;"	m
-INCLUDES	ana-prism/Makefile	/^INCLUDES=-.\/include$/;"	m
+INCLUDES	PRISM-/Makefile	/^INCLUDES=-.\/include$/;"	m
+INCLUDES	PRISM-/ana-prism/Makefile	/^INCLUDES=-.\/include$/;"	m
 LIBS	Makefile	/^LIBS=-lrt -lm -lstdc++fs -lssl -lcrypto -llustreapi -lpthread$/;"	m
-LIBS	ana-prism/Makefile	/^LIBS=-lrt -lm -lstdc++fs -lssl -lcrypto$/;"	m
-MASTER	mpitracer.h	36;"	d
+LIBS	PRISM-/Makefile	/^LIBS=-lrt -lm -lstdc++fs -lssl -lcrypto -llustreapi -lpthread$/;"	m
+LIBS	PRISM-/ana-prism/Makefile	/^LIBS=-lrt -lm -lstdc++fs -lssl -lcrypto$/;"	m
+MASTER	PRISM-/mpitracer.h	36;"	d
+MASTER	mpitracer.h	38;"	d
+MAXIMUM_MAX	PRISM-/mpitracer.cc	16;"	d	file:
+MAXIMUM_MAX	PRISM-/old_mpitracer.cc	16;"	d	file:
 MAXIMUM_MAX	mpitracer.cc	16;"	d	file:
 MAXIMUM_MAX	old_mpitracer.cc	16;"	d	file:
+MAXIMUM_MIN	PRISM-/mpitracer.cc	15;"	d	file:
+MAXIMUM_MIN	PRISM-/old_mpitracer.cc	15;"	d	file:
 MAXIMUM_MIN	mpitracer.cc	15;"	d	file:
 MAXIMUM_MIN	old_mpitracer.cc	15;"	d	file:
-MAX_FILE_PATH_LEN	mpitracer.h	35;"	d
+MAX_FILE_PATH_LEN	PRISM-/mpitracer.h	35;"	d
+MAX_FILE_PATH_LEN	mpitracer.h	37;"	d
+MB	mpitracer.h	40;"	d
+MINIMUM_MAX	PRISM-/mpitracer.cc	14;"	d	file:
+MINIMUM_MAX	PRISM-/old_mpitracer.cc	14;"	d	file:
 MINIMUM_MAX	mpitracer.cc	14;"	d	file:
 MINIMUM_MAX	old_mpitracer.cc	14;"	d	file:
+MINIMUM_MIN	PRISM-/mpitracer.cc	13;"	d	file:
+MINIMUM_MIN	PRISM-/old_mpitracer.cc	13;"	d	file:
 MINIMUM_MIN	mpitracer.cc	13;"	d	file:
 MINIMUM_MIN	old_mpitracer.cc	13;"	d	file:
 MPICXX	Makefile	/^MPICXX=mpicxx$/;"	m
+MPICXX	PRISM-/Makefile	/^MPICXX=mpicxx$/;"	m
+Msg_Push	PRISM-/master.cc	/^void Dedupe::Msg_Push(char * buffer, char * Msg, int idx){$/;"	f	class:danzer::Dedupe
 Msg_Push	master.cc	/^void Dedupe::Msg_Push(char * buffer, char * Msg, int idx){$/;"	f	class:danzer::Dedupe
-OST_NUMBER	mpitracer.h	33;"	d
-OST_queue	mpitracer.h	/^    } OST_queue;$/;"	t	namespace:danzer	typeref:struct:danzer::__anon4
-POOL_SIZE	mpitracer.h	32;"	d
-QUEUE_SIZE	mpitracer.h	30;"	d
+OST_NUMBER	PRISM-/mpitracer.h	33;"	d
+OST_NUMBER	mpitracer.h	35;"	d
+OST_queue	PRISM-/mpitracer.h	/^    } OST_queue;$/;"	t	namespace:danzer	typeref:struct:danzer::__anon4
+OST_queue	mpitracer.h	/^    } OST_queue;$/;"	t	namespace:danzer	typeref:struct:danzer::__anon10
+POOL_SIZE	PRISM-/mpitracer.h	32;"	d
+POOL_SIZE	mpitracer.h	34;"	d
+QUEUE_SIZE	PRISM-/mpitracer.h	30;"	d
+QUEUE_SIZE	mpitracer.h	32;"	d
+SZ_128K	PRISM-/mpitracer.h	/^        SZ_128K,$/;"	e	enum:danzer::chunk_size
 SZ_128K	mpitracer.h	/^        SZ_128K,$/;"	e	enum:danzer::chunk_size
+SZ_16K	PRISM-/mpitracer.h	/^        SZ_16K,$/;"	e	enum:danzer::chunk_size
 SZ_16K	mpitracer.h	/^        SZ_16K,$/;"	e	enum:danzer::chunk_size
+SZ_1MB	PRISM-/mpitracer.h	/^        SZ_1MB,$/;"	e	enum:danzer::chunk_size
 SZ_1MB	mpitracer.h	/^        SZ_1MB,$/;"	e	enum:danzer::chunk_size
+SZ_256K	PRISM-/mpitracer.h	/^        SZ_256K,$/;"	e	enum:danzer::chunk_size
 SZ_256K	mpitracer.h	/^        SZ_256K,$/;"	e	enum:danzer::chunk_size
+SZ_32K	PRISM-/mpitracer.h	/^        SZ_32K,$/;"	e	enum:danzer::chunk_size
 SZ_32K	mpitracer.h	/^        SZ_32K,$/;"	e	enum:danzer::chunk_size
+SZ_4K	PRISM-/mpitracer.h	/^        SZ_4K,$/;"	e	enum:danzer::chunk_size
 SZ_4K	mpitracer.h	/^        SZ_4K,$/;"	e	enum:danzer::chunk_size
+SZ_4MB	PRISM-/mpitracer.h	/^        SZ_4MB,$/;"	e	enum:danzer::chunk_size
 SZ_4MB	mpitracer.h	/^        SZ_4MB,$/;"	e	enum:danzer::chunk_size
+SZ_512K	PRISM-/mpitracer.h	/^        SZ_512K,$/;"	e	enum:danzer::chunk_size
 SZ_512K	mpitracer.h	/^        SZ_512K,$/;"	e	enum:danzer::chunk_size
+SZ_8K	PRISM-/mpitracer.h	/^        SZ_8K,$/;"	e	enum:danzer::chunk_size
 SZ_8K	mpitracer.h	/^        SZ_8K,$/;"	e	enum:danzer::chunk_size
-TASK_QUEUE_FULL	mpitracer.h	34;"	d
-TERMINATION_MSG	mpitracer.h	37;"	d
-ThreadArgs	mpitracer.h	/^    } ThreadArgs;$/;"	t	namespace:danzer	typeref:struct:danzer::__anon6
-av	mpitracer.h	/^    uint32_t av;$/;"	m	struct:danzer::__anon1
+StandardizedTaskSizePer24Process	mpitracer.h	/^	uint64_t StandardizedTaskSizePer24Process[10] =$/;"	m	class:danzer::Dedupe
+TASK_QUEUE_FULL	PRISM-/mpitracer.h	34;"	d
+TASK_QUEUE_FULL	mpitracer.h	36;"	d
+TERMINATION_MSG	PRISM-/mpitracer.h	37;"	d
+TERMINATION_MSG	mpitracer.h	39;"	d
+ThreadArgs	PRISM-/mpitracer.h	/^    } ThreadArgs;$/;"	t	namespace:danzer	typeref:struct:danzer::__anon6
+ThreadArgs	mpitracer.h	/^    } ThreadArgs;$/;"	t	namespace:danzer	typeref:struct:danzer::__anon12
+abaqus	mpitracer.h	/^		mpas=0, grims, qchem, nastran, roms, abaqus, lammps, qe, qmc, pytorch$/;"	e	enum:danzer::Dedupe::dataset
+av	PRISM-/mpitracer.h	/^    uint32_t av;$/;"	m	struct:danzer::__anon1
+av	mpitracer.h	/^    uint32_t av;$/;"	m	struct:danzer::__anon7
+bufferpool	PRISM-/mpitracer.h	/^    Buffer bufferpool[POOL_SIZE];$/;"	m	class:danzer::Dedupe
 bufferpool	mpitracer.h	/^    Buffer bufferpool[POOL_SIZE];$/;"	m	class:danzer::Dedupe
+cd	PRISM-/mpitracer.h	/^    ChunkData cd;$/;"	m	class:danzer::Dedupe
 cd	mpitracer.h	/^    ChunkData cd;$/;"	m	class:danzer::Dedupe
-chunk	mpitracer.h	/^  }chunk;$/;"	t	namespace:danzer	typeref:struct:danzer::__anon2
+chunk	PRISM-/mpitracer.h	/^  }chunk;$/;"	t	namespace:danzer	typeref:struct:danzer::__anon2
+chunk	mpitracer.h	/^  }chunk;$/;"	t	namespace:danzer	typeref:struct:danzer::__anon8
+chunk_block	PRISM-/mpitracer.h	/^    int chunk_block;$/;"	m	class:danzer::Dedupe
 chunk_block	mpitracer.h	/^    int chunk_block;$/;"	m	class:danzer::Dedupe
+chunk_cdc	PRISM-/mpitracer.cc	/^    void Dedupe::chunk_cdc(string buffer, ofstream &trace_file)$/;"	f	class:danzer::Dedupe
+chunk_cdc	PRISM-/mpitracer.cc	/^    void Dedupe::chunk_cdc(string buffer, ofstream &trace_file, chunk_vec *cv, uint64_t *kv_count)$/;"	f	class:danzer::Dedupe
+chunk_cdc	PRISM-/old_mpitracer.cc	/^    void Dedupe::chunk_cdc(string buffer, ofstream &trace_file)$/;"	f	class:danzer::Dedupe
+chunk_cdc	PRISM-/old_mpitracer.cc	/^    void Dedupe::chunk_cdc(string buffer, ofstream &trace_file, chunk_vec *cv, uint64_t *kv_count)$/;"	f	class:danzer::Dedupe
 chunk_cdc	mpitracer.cc	/^    void Dedupe::chunk_cdc(string buffer, ofstream &trace_file)$/;"	f	class:danzer::Dedupe
 chunk_cdc	mpitracer.cc	/^    void Dedupe::chunk_cdc(string buffer, ofstream &trace_file, chunk_vec *cv, uint64_t *kv_count)$/;"	f	class:danzer::Dedupe
 chunk_cdc	old_mpitracer.cc	/^    void Dedupe::chunk_cdc(string buffer, ofstream &trace_file)$/;"	f	class:danzer::Dedupe
 chunk_cdc	old_mpitracer.cc	/^    void Dedupe::chunk_cdc(string buffer, ofstream &trace_file, chunk_vec *cv, uint64_t *kv_count)$/;"	f	class:danzer::Dedupe
+chunk_entry	PRISM-/mpitracer.h	/^  struct chunk_entry{$/;"	s	namespace:danzer
 chunk_entry	mpitracer.h	/^  struct chunk_entry{$/;"	s	namespace:danzer
+chunk_fixed_size	PRISM-/mpitracer.cc	/^    void Dedupe::chunk_fixed_size(const string &buffer, uint64_t obj_size){$/;"	f	class:danzer::Dedupe
+chunk_fixed_size	PRISM-/old_mpitracer.cc	/^    void Dedupe::chunk_fixed_size(const string &buffer, int rank, uint64_t o_size){$/;"	f	class:danzer::Dedupe
 chunk_fixed_size	mpitracer.cc	/^    void Dedupe::chunk_fixed_size(const string &buffer, uint64_t obj_size){$/;"	f	class:danzer::Dedupe
 chunk_fixed_size	old_mpitracer.cc	/^    void Dedupe::chunk_fixed_size(const string &buffer, int rank, uint64_t o_size){$/;"	f	class:danzer::Dedupe
+chunk_full_file	PRISM-/mpitracer.cc	/^    void Dedupe::chunk_full_file(string file_name, ofstream &trace_file)$/;"	f	class:danzer::Dedupe
+chunk_full_file	PRISM-/old_mpitracer.cc	/^    void Dedupe::chunk_full_file(string file_name, ofstream &trace_file)$/;"	f	class:danzer::Dedupe
 chunk_full_file	mpitracer.cc	/^    void Dedupe::chunk_full_file(string file_name, ofstream &trace_file)$/;"	f	class:danzer::Dedupe
 chunk_full_file	old_mpitracer.cc	/^    void Dedupe::chunk_full_file(string file_name, ofstream &trace_file)$/;"	f	class:danzer::Dedupe
+chunk_mode	PRISM-/mpitracer.h	/^    int chunk_mode;$/;"	m	class:danzer::Dedupe
 chunk_mode	mpitracer.h	/^    int chunk_mode;$/;"	m	class:danzer::Dedupe
+chunk_size	PRISM-/mpitracer.h	/^    int chunk_size;$/;"	m	class:danzer::Dedupe
+chunk_size	PRISM-/mpitracer.h	/^  enum chunk_size{$/;"	g	namespace:danzer
 chunk_size	mpitracer.h	/^    int chunk_size;$/;"	m	class:danzer::Dedupe
 chunk_size	mpitracer.h	/^  enum chunk_size{$/;"	g	namespace:danzer
+chunk_vec	PRISM-/mpitracer.h	/^  typedef kvec_t(chunk) chunk_vec;$/;"	t	namespace:danzer
 chunk_vec	mpitracer.h	/^  typedef kvec_t(chunk) chunk_vec;$/;"	t	namespace:danzer
+chunks	PRISM-/mpitracer.h	/^    vector<chunk_entry *> chunks;$/;"	m	class:danzer::ChunkData
 chunks	mpitracer.h	/^    vector<chunk_entry *> chunks;$/;"	m	class:danzer::ChunkData
+commThread	PRISM-/mpitracer.cc	/^    void* Dedupe::commThread() {$/;"	f	class:danzer::Dedupe
+commThread	PRISM-/old_mpitracer.cc	/^    void* Dedupe::commThread() {$/;"	f	class:danzer::Dedupe
 commThread	mpitracer.cc	/^    void* Dedupe::commThread() {$/;"	f	class:danzer::Dedupe
 commThread	old_mpitracer.cc	/^    void* Dedupe::commThread() {$/;"	f	class:danzer::Dedupe
+commThreadStarter	PRISM-/mpitracer.cc	/^    void* Dedupe::commThreadStarter(void* arg) {$/;"	f	class:danzer::Dedupe
+commThreadStarter	PRISM-/old_mpitracer.cc	/^    void* Dedupe::commThreadStarter(void* arg) {$/;"	f	class:danzer::Dedupe
 commThreadStarter	mpitracer.cc	/^    void* Dedupe::commThreadStarter(void* arg) {$/;"	f	class:danzer::Dedupe
 commThreadStarter	old_mpitracer.cc	/^    void* Dedupe::commThreadStarter(void* arg) {$/;"	f	class:danzer::Dedupe
-cond	mpitracer.h	/^        pthread_cond_t cond;$/;"	m	struct:danzer::__anon4
-cond	mpitracer.h	/^        pthread_cond_t cond;$/;"	m	struct:danzer::__anon5
+cond	PRISM-/mpitracer.h	/^        pthread_cond_t cond;$/;"	m	struct:danzer::__anon4
+cond	PRISM-/mpitracer.h	/^        pthread_cond_t cond;$/;"	m	struct:danzer::__anon5
+cond	mpitracer.h	/^        pthread_cond_t cond;$/;"	m	struct:danzer::__anon10
+cond	mpitracer.h	/^        pthread_cond_t cond;$/;"	m	struct:danzer::__anon11
+cut	PRISM-/mpitracer.cc	/^    uint32_t cut(const uint8_t *src, const uint32_t len, const uint32_t mi, const uint32_t ma, const uint32_t ns, const uint32_t mask_s, const uint32_t mask_l)$/;"	f	namespace:danzer
+cut	PRISM-/old_mpitracer.cc	/^    uint32_t cut(const uint8_t *src, const uint32_t len, const uint32_t mi, const uint32_t ma, const uint32_t ns, const uint32_t mask_s, const uint32_t mask_l)$/;"	f	namespace:danzer
 cut	mpitracer.cc	/^    uint32_t cut(const uint8_t *src, const uint32_t len, const uint32_t mi, const uint32_t ma, const uint32_t ns, const uint32_t mask_s, const uint32_t mask_l)$/;"	f	namespace:danzer
 cut	old_mpitracer.cc	/^    uint32_t cut(const uint8_t *src, const uint32_t len, const uint32_t mi, const uint32_t ma, const uint32_t ns, const uint32_t mask_s, const uint32_t mask_l)$/;"	f	namespace:danzer
+danzer	PRISM-/master.cc	/^namespace danzer {$/;"	n	file:
+danzer	PRISM-/mpitracer.cc	/^namespace danzer$/;"	n	file:
+danzer	PRISM-/mpitracer.h	/^namespace danzer{$/;"	n
+danzer	PRISM-/old_mpitracer.cc	/^namespace danzer$/;"	n	file:
 danzer	master.cc	/^namespace danzer {$/;"	n	file:
 danzer	mpitracer.cc	/^namespace danzer$/;"	n	file:
 danzer	mpitracer.h	/^namespace danzer{$/;"	n
 danzer	old_mpitracer.cc	/^namespace danzer$/;"	n	file:
-data	mpitracer.h	/^        char data[BUFFER_SIZE];$/;"	m	struct:danzer::__anon5
+data	PRISM-/mpitracer.h	/^        char data[BUFFER_SIZE];$/;"	m	struct:danzer::__anon5
+data	io_time_analysis.py	/^data = []$/;"	v
+data	mpitracer.h	/^        char data[BUFFER_SIZE];$/;"	m	struct:danzer::__anon11
+dataset	mpitracer.h	/^	enum dataset{$/;"	g	class:danzer::Dedupe
+dataset_map	mpitracer.h	/^	map<string, dataset> dataset_map = boost::assign::map_list_of$/;"	m	class:danzer::Dedupe
+dequeue	PRISM-/mpitracer.cc	/^    object_task Dedupe::dequeue(OST_queue *ost_q) {$/;"	f	class:danzer::Dedupe
+dequeue	PRISM-/old_mpitracer.cc	/^    object_task Dedupe::dequeue(OST_queue *ost_q) {$/;"	f	class:danzer::Dedupe
 dequeue	mpitracer.cc	/^    object_task Dedupe::dequeue(OST_queue *ost_q) {$/;"	f	class:danzer::Dedupe
 dequeue	old_mpitracer.cc	/^    object_task Dedupe::dequeue(OST_queue *ost_q) {$/;"	f	class:danzer::Dedupe
-end	mpitracer.h	/^        uint64_t end; \/\/ end offset$/;"	m	struct:danzer::__anon3
+end	PRISM-/mpitracer.h	/^        uint64_t end; \/\/ end offset$/;"	m	struct:danzer::__anon3
+end	mpitracer.h	/^        uint64_t end; \/\/ end offset$/;"	m	struct:danzer::__anon9
+enqueue	PRISM-/mpitracer.cc	/^    void Dedupe::enqueue(OST_queue *ost_q, object_task task) {$/;"	f	class:danzer::Dedupe
+enqueue	PRISM-/old_mpitracer.cc	/^    void Dedupe::enqueue(OST_queue *ost_q, object_task task) {$/;"	f	class:danzer::Dedupe
 enqueue	mpitracer.cc	/^    void Dedupe::enqueue(OST_queue *ost_q, object_task task) {$/;"	f	class:danzer::Dedupe
 enqueue	old_mpitracer.cc	/^    void Dedupe::enqueue(OST_queue *ost_q, object_task task) {$/;"	f	class:danzer::Dedupe
+fastcdc_init	PRISM-/mpitracer.cc	/^    fcdc_ctx Dedupe::fastcdc_init(uint32_t mi, uint32_t av, uint32_t ma)$/;"	f	class:danzer::Dedupe
+fastcdc_init	PRISM-/old_mpitracer.cc	/^    fcdc_ctx Dedupe::fastcdc_init(uint32_t mi, uint32_t av, uint32_t ma)$/;"	f	class:danzer::Dedupe
 fastcdc_init	mpitracer.cc	/^    fcdc_ctx Dedupe::fastcdc_init(uint32_t mi, uint32_t av, uint32_t ma)$/;"	f	class:danzer::Dedupe
 fastcdc_init	old_mpitracer.cc	/^    fcdc_ctx Dedupe::fastcdc_init(uint32_t mi, uint32_t av, uint32_t ma)$/;"	f	class:danzer::Dedupe
+fastcdc_stream	PRISM-/mpitracer.cc	/^    size_t Dedupe::fastcdc_stream(FILE *stream, uint32_t mi, uint32_t av, uint32_t ma, chunk_vec *cv)$/;"	f	class:danzer::Dedupe
+fastcdc_stream	PRISM-/old_mpitracer.cc	/^    size_t Dedupe::fastcdc_stream(FILE *stream, uint32_t mi, uint32_t av, uint32_t ma, chunk_vec *cv)$/;"	f	class:danzer::Dedupe
 fastcdc_stream	mpitracer.cc	/^    size_t Dedupe::fastcdc_stream(FILE *stream, uint32_t mi, uint32_t av, uint32_t ma, chunk_vec *cv)$/;"	f	class:danzer::Dedupe
 fastcdc_stream	old_mpitracer.cc	/^    size_t Dedupe::fastcdc_stream(FILE *stream, uint32_t mi, uint32_t av, uint32_t ma, chunk_vec *cv)$/;"	f	class:danzer::Dedupe
+fastcdc_update	PRISM-/mpitracer.cc	/^    size_t Dedupe::fastcdc_update(fcdc_ctx *ctx, uint8_t *data, size_t len, int end, chunk_vec *cv)$/;"	f	class:danzer::Dedupe
+fastcdc_update	PRISM-/old_mpitracer.cc	/^    size_t Dedupe::fastcdc_update(fcdc_ctx *ctx, uint8_t *data, size_t len, int end, chunk_vec *cv)$/;"	f	class:danzer::Dedupe
 fastcdc_update	mpitracer.cc	/^    size_t Dedupe::fastcdc_update(fcdc_ctx *ctx, uint8_t *data, size_t len, int end, chunk_vec *cv)$/;"	f	class:danzer::Dedupe
 fastcdc_update	old_mpitracer.cc	/^    size_t Dedupe::fastcdc_update(fcdc_ctx *ctx, uint8_t *data, size_t len, int end, chunk_vec *cv)$/;"	f	class:danzer::Dedupe
-fcdc_ctx	mpitracer.h	/^  }fcdc_ctx;$/;"	t	namespace:danzer	typeref:struct:danzer::__anon1
+fcdc_ctx	PRISM-/mpitracer.h	/^  }fcdc_ctx;$/;"	t	namespace:danzer	typeref:struct:danzer::__anon1
+fcdc_ctx	mpitracer.h	/^  }fcdc_ctx;$/;"	t	namespace:danzer	typeref:struct:danzer::__anon7
+fe_table	PRISM-/mpitracer.h	/^    unordered_map<string, long long> fe_table;$/;"	m	class:danzer::FStat
 fe_table	mpitracer.h	/^    unordered_map<string, long long> fe_table;$/;"	m	class:danzer::FStat
-file_path	mpitracer.h	/^	      char file_path[MAX_FILE_PATH_LEN]; $/;"	m	struct:danzer::__anon3
-filled	mpitracer.h	/^        int filled;$/;"	m	struct:danzer::__anon5
+file_path	PRISM-/mpitracer.h	/^	      char file_path[MAX_FILE_PATH_LEN]; $/;"	m	struct:danzer::__anon3
+file_path	mpitracer.h	/^	      char file_path[MAX_FILE_PATH_LEN]; $/;"	m	struct:danzer::__anon9
+filename	io_time_analysis.py	/^    filename = f"rank_{rank}_output.txt"$/;"	v
+filled	PRISM-/mpitracer.h	/^        int filled;$/;"	m	struct:danzer::__anon5
+filled	mpitracer.h	/^        int filled;$/;"	m	struct:danzer::__anon11
+fingerprint	PRISM-/mpitracer.h	/^     unsigned char fingerprint[SHA_DIGEST_LENGTH];$/;"	m	struct:danzer::chunk_entry
 fingerprint	mpitracer.h	/^     unsigned char fingerprint[SHA_DIGEST_LENGTH];$/;"	m	struct:danzer::chunk_entry
+fingerprint_modes	PRISM-/mpitracer.h	/^  enum fingerprint_modes{$/;"	g	namespace:danzer
 fingerprint_modes	mpitracer.h	/^  enum fingerprint_modes{$/;"	g	namespace:danzer
+fp_mode	PRISM-/mpitracer.h	/^    int fp_mode;$/;"	m	class:danzer::Dedupe
 fp_mode	mpitracer.h	/^    int fp_mode;$/;"	m	class:danzer::Dedupe
+fsize_table	PRISM-/mpitracer.h	/^    vector <pair <long long, string>> fsize_table;$/;"	m	class:danzer::FStat
 fsize_table	mpitracer.h	/^    vector <pair <long long, string>> fsize_table;$/;"	m	class:danzer::FStat
-index	mpitracer.h	/^        int index;$/;"	m	struct:danzer::__anon6
+grims	mpitracer.h	/^		mpas=0, grims, qchem, nastran, roms, abaqus, lammps, qe, qmc, pytorch$/;"	e	enum:danzer::Dedupe::dataset
+index	PRISM-/mpitracer.h	/^        int index;$/;"	m	struct:danzer::__anon6
+index	mpitracer.h	/^        int index;$/;"	m	struct:danzer::__anon12
+init	PRISM-/mpitracer.h	/^    void init(){$/;"	f	class:danzer::ChunkData
 init	mpitracer.h	/^    void init(){$/;"	f	class:danzer::ChunkData
+initializeq	PRISM-/mpitracer.cc	/^    void Dedupe::initializeq(int ostPerRank) {$/;"	f	class:danzer::Dedupe
+initializeq	PRISM-/old_mpitracer.cc	/^    void Dedupe::initializeq(int ostPerRank) {$/;"	f	class:danzer::Dedupe
 initializeq	mpitracer.cc	/^    void Dedupe::initializeq(int ostPerRank) {$/;"	f	class:danzer::Dedupe
 initializeq	old_mpitracer.cc	/^    void Dedupe::initializeq(int ostPerRank) {$/;"	f	class:danzer::Dedupe
-instance	mpitracer.h	/^        Dedupe* instance;$/;"	m	struct:danzer::__anon6
-interval	mpitracer.h	/^        uint64_t interval;$/;"	m	struct:danzer::__anon3
+instance	PRISM-/mpitracer.h	/^        Dedupe* instance;$/;"	m	struct:danzer::__anon6
+instance	mpitracer.h	/^        Dedupe* instance;$/;"	m	struct:danzer::__anon12
+interval	PRISM-/mpitracer.h	/^        uint64_t interval;$/;"	m	struct:danzer::__anon3
+interval	mpitracer.h	/^        uint64_t interval;$/;"	m	struct:danzer::__anon9
+kv_A	PRISM-/uthash.h	64;"	d
 kv_A	uthash.h	64;"	d
+kv_a	PRISM-/uthash.h	96;"	d
 kv_a	uthash.h	96;"	d
+kv_copy	PRISM-/uthash.h	72;"	d
 kv_copy	uthash.h	72;"	d
+kv_destroy	PRISM-/uthash.h	63;"	d
 kv_destroy	uthash.h	63;"	d
+kv_init	PRISM-/uthash.h	62;"	d
 kv_init	uthash.h	62;"	d
+kv_max	PRISM-/uthash.h	67;"	d
 kv_max	uthash.h	67;"	d
+kv_pop	PRISM-/uthash.h	65;"	d
 kv_pop	uthash.h	65;"	d
+kv_push	PRISM-/uthash.h	80;"	d
 kv_push	uthash.h	80;"	d
+kv_pushp	PRISM-/uthash.h	89;"	d
 kv_pushp	uthash.h	89;"	d
+kv_resize	PRISM-/uthash.h	69;"	d
 kv_resize	uthash.h	69;"	d
+kv_roundup32	PRISM-/uthash.h	53;"	d
 kv_roundup32	uthash.h	53;"	d
+kv_size	PRISM-/uthash.h	66;"	d
 kv_size	uthash.h	66;"	d
+kv_swap	PRISM-/uthash.h	103;"	d
 kv_swap	uthash.h	103;"	d
+kvec_t	PRISM-/uthash.h	57;"	d
 kvec_t	uthash.h	57;"	d
+lammps	mpitracer.h	/^		mpas=0, grims, qchem, nastran, roms, abaqus, lammps, qe, qmc, pytorch$/;"	e	enum:danzer::Dedupe::dataset
+layout_analysis	PRISM-/master.cc	/^void Dedupe::layout_analysis(filesystem::directory_entry entry, vector<vector<object_task*>> &task_queue){$/;"	f	class:danzer::Dedupe
 layout_analysis	master.cc	/^void Dedupe::layout_analysis(filesystem::directory_entry entry, vector<vector<object_task*>> &task_queue){$/;"	f	class:danzer::Dedupe
+layout_end_of_process	PRISM-/master.cc	/^void Dedupe::layout_end_of_process(vector<vector<object_task*>> &task_queue){$/;"	f	class:danzer::Dedupe
 layout_end_of_process	master.cc	/^void Dedupe::layout_end_of_process(vector<vector<object_task*>> &task_queue){$/;"	f	class:danzer::Dedupe
-len	mpitracer.h	/^    size_t len;$/;"	m	struct:danzer::__anon2
+len	PRISM-/mpitracer.h	/^    size_t len;$/;"	m	struct:danzer::__anon2
+len	mpitracer.h	/^    size_t len;$/;"	m	struct:danzer::__anon8
+load_balance	PRISM-/mpitracer.h	/^	int load_balance = 1; $/;"	m	class:danzer::Dedupe
 load_balance	mpitracer.h	/^	int load_balance = 1; $/;"	m	class:danzer::Dedupe
-ma	mpitracer.h	/^    uint32_t ma;$/;"	m	struct:danzer::__anon1
-main	ana-prism/p_analyze.cc	/^int main(int argc, char *argv[])$/;"	f
+ma	PRISM-/mpitracer.h	/^    uint32_t ma;$/;"	m	struct:danzer::__anon1
+ma	mpitracer.h	/^    uint32_t ma;$/;"	m	struct:danzer::__anon7
+main	PRISM-/ana-prism/p_analyze.cc	/^int main(int argc, char *argv[])$/;"	f
+main	PRISM-/mpitracer.cc	/^int main(int argc, char **argv)$/;"	f
+main	PRISM-/old_mpitracer.cc	/^int main(int argc, char **argv)$/;"	f
 main	mpitracer.cc	/^int main(int argc, char **argv)$/;"	f
 main	old_mpitracer.cc	/^int main(int argc, char **argv)$/;"	f
-mask_l	mpitracer.h	/^    uint32_t mask_l;$/;"	m	struct:danzer::__anon1
-mask_s	mpitracer.h	/^    uint32_t mask_s;$/;"	m	struct:danzer::__anon1
+mask_l	PRISM-/mpitracer.h	/^    uint32_t mask_l;$/;"	m	struct:danzer::__anon1
+mask_l	mpitracer.h	/^    uint32_t mask_l;$/;"	m	struct:danzer::__anon7
+mask_s	PRISM-/mpitracer.h	/^    uint32_t mask_s;$/;"	m	struct:danzer::__anon1
+mask_s	mpitracer.h	/^    uint32_t mask_s;$/;"	m	struct:danzer::__anon7
+matplotlib	io_time_analysis.py	/^import matplotlib.pyplot as plt$/;"	i
+mean_file_size	PRISM-/mpitracer.h	/^    long long mean_file_size;$/;"	m	class:danzer::FStat
 mean_file_size	mpitracer.h	/^    long long mean_file_size;$/;"	m	class:danzer::FStat
+measure_cumulative_fs	PRISM-/mpitracer.cc	/^    void FStat::measure_cumulative_fs(string directory_path, ofstream &output_file)$/;"	f	class:danzer::FStat
+measure_cumulative_fs	PRISM-/old_mpitracer.cc	/^    void FStat::measure_cumulative_fs(string directory_path, ofstream &output_file)$/;"	f	class:danzer::FStat
 measure_cumulative_fs	mpitracer.cc	/^    void FStat::measure_cumulative_fs(string directory_path, ofstream &output_file)$/;"	f	class:danzer::FStat
 measure_cumulative_fs	old_mpitracer.cc	/^    void FStat::measure_cumulative_fs(string directory_path, ofstream &output_file)$/;"	f	class:danzer::FStat
+measure_file_extensions	PRISM-/mpitracer.cc	/^    void FStat::measure_file_extensions(string directory_path, ofstream &output_file)$/;"	f	class:danzer::FStat
+measure_file_extensions	PRISM-/old_mpitracer.cc	/^    void FStat::measure_file_extensions(string directory_path, ofstream &output_file)$/;"	f	class:danzer::FStat
 measure_file_extensions	mpitracer.cc	/^    void FStat::measure_file_extensions(string directory_path, ofstream &output_file)$/;"	f	class:danzer::FStat
 measure_file_extensions	old_mpitracer.cc	/^    void FStat::measure_file_extensions(string directory_path, ofstream &output_file)$/;"	f	class:danzer::FStat
+measure_file_sizes	PRISM-/mpitracer.cc	/^    void FStat::measure_file_sizes(string directory_path, ofstream &output_file)$/;"	f	class:danzer::FStat
+measure_file_sizes	PRISM-/old_mpitracer.cc	/^    void FStat::measure_file_sizes(string directory_path, ofstream &output_file)$/;"	f	class:danzer::FStat
 measure_file_sizes	mpitracer.cc	/^    void FStat::measure_file_sizes(string directory_path, ofstream &output_file)$/;"	f	class:danzer::FStat
 measure_file_sizes	old_mpitracer.cc	/^    void FStat::measure_file_sizes(string directory_path, ofstream &output_file)$/;"	f	class:danzer::FStat
-mi	mpitracer.h	/^    uint32_t mi;$/;"	m	struct:danzer::__anon1
+mi	PRISM-/mpitracer.h	/^    uint32_t mi;$/;"	m	struct:danzer::__anon1
+mi	mpitracer.h	/^    uint32_t mi;$/;"	m	struct:danzer::__anon7
+mode	PRISM-/mpitracer.h	/^    int mode;$/;"	m	class:danzer::ChunkData
 mode	mpitracer.h	/^    int mode;$/;"	m	class:danzer::ChunkData
-mutex	mpitracer.h	/^        pthread_mutex_t mutex;$/;"	m	struct:danzer::__anon4
-mutex	mpitracer.h	/^        pthread_mutex_t mutex;$/;"	m	struct:danzer::__anon5
+mpas	mpitracer.h	/^		mpas=0, grims, qchem, nastran, roms, abaqus, lammps, qe, qmc, pytorch$/;"	e	enum:danzer::Dedupe::dataset
+mutex	PRISM-/mpitracer.h	/^        pthread_mutex_t mutex;$/;"	m	struct:danzer::__anon4
+mutex	PRISM-/mpitracer.h	/^        pthread_mutex_t mutex;$/;"	m	struct:danzer::__anon5
+mutex	mpitracer.h	/^        pthread_mutex_t mutex;$/;"	m	struct:danzer::__anon10
+mutex	mpitracer.h	/^        pthread_mutex_t mutex;$/;"	m	struct:danzer::__anon11
+nastran	mpitracer.h	/^		mpas=0, grims, qchem, nastran, roms, abaqus, lammps, qe, qmc, pytorch$/;"	e	enum:danzer::Dedupe::dataset
+non_default_pfl	PRISM-/mpitracer.h	/^    int non_default_pfl=0; $/;"	m	class:danzer::Dedupe
 non_default_pfl	mpitracer.h	/^    int non_default_pfl=0; $/;"	m	class:danzer::Dedupe
+normal_size	PRISM-/mpitracer.cc	/^    uint32_t normal_size(const uint32_t mi, const uint32_t av, const uint32_t len)$/;"	f	namespace:danzer
+normal_size	PRISM-/old_mpitracer.cc	/^    uint32_t normal_size(const uint32_t mi, const uint32_t av, const uint32_t len)$/;"	f	namespace:danzer
 normal_size	mpitracer.cc	/^    uint32_t normal_size(const uint32_t mi, const uint32_t av, const uint32_t len)$/;"	f	namespace:danzer
 normal_size	old_mpitracer.cc	/^    uint32_t normal_size(const uint32_t mi, const uint32_t av, const uint32_t len)$/;"	f	namespace:danzer
-ns	mpitracer.h	/^    uint32_t ns;$/;"	m	struct:danzer::__anon1
+np	io_time_analysis.py	/^import numpy as np$/;"	i
+ns	PRISM-/mpitracer.h	/^    uint32_t ns;$/;"	m	struct:danzer::__anon1
+ns	mpitracer.h	/^    uint32_t ns;$/;"	m	struct:danzer::__anon7
+numWorkers	PRISM-/mpitracer.h	/^    int numWorkers = 1;$/;"	m	class:danzer::Dedupe
 numWorkers	mpitracer.h	/^    int numWorkers = 1;$/;"	m	class:danzer::Dedupe
+num_tasks_per_ost	PRISM-/mpitracer.h	/^  uint64_t num_tasks_per_ost [OST_NUMBER] = {0};$/;"	m	class:danzer::Dedupe
 num_tasks_per_ost	mpitracer.h	/^  uint64_t num_tasks_per_ost [OST_NUMBER] = {0};$/;"	m	class:danzer::Dedupe
+obj_cnt	PRISM-/mpitracer.h	/^    int obj_cnt = 0;$/;"	m	class:danzer::Dedupe
 obj_cnt	mpitracer.h	/^    int obj_cnt = 0;$/;"	m	class:danzer::Dedupe
-object_task	mpitracer.h	/^    } object_task;$/;"	t	namespace:danzer	typeref:struct:danzer::__anon3
+object_task	PRISM-/mpitracer.h	/^    } object_task;$/;"	t	namespace:danzer	typeref:struct:danzer::__anon3
+object_task	mpitracer.h	/^    } object_task;$/;"	t	namespace:danzer	typeref:struct:danzer::__anon9
+object_task_buffer_free	PRISM-/master.cc	/^void Dedupe::object_task_buffer_free (char * buffer){$/;"	f	class:danzer::Dedupe
 object_task_buffer_free	master.cc	/^void Dedupe::object_task_buffer_free (char * buffer){$/;"	f	class:danzer::Dedupe
+object_task_deserialization	PRISM-/master.cc	/^object_task * Dedupe::object_task_deserialization(const char* buffer){$/;"	f	class:danzer::Dedupe
 object_task_deserialization	master.cc	/^object_task * Dedupe::object_task_deserialization(const char* buffer){$/;"	f	class:danzer::Dedupe
+object_task_generate	PRISM-/master.cc	/^object_task* Dedupe::object_task_generate(const char * file_path, int ost, uint64_t start, uint64_t end, uint64_t interval, uint64_t size){$/;"	f	class:danzer::Dedupe
 object_task_generate	master.cc	/^object_task* Dedupe::object_task_generate(const char * file_path, int ost, uint64_t start, uint64_t end, uint64_t interval, uint64_t size){$/;"	f	class:danzer::Dedupe
+object_task_insert	PRISM-/master.cc	/^void Dedupe::object_task_insert(object_task* task, vector<object_task*> queue){$/;"	f	class:danzer::Dedupe
 object_task_insert	master.cc	/^void Dedupe::object_task_insert(object_task* task, vector<object_task*> queue){$/;"	f	class:danzer::Dedupe
+object_task_load_balance	PRISM-/master.cc	/^void  Dedupe:: object_task_load_balance(vector<vector<object_task*>>& task_queue)$/;"	f	class:danzer::Dedupe
 object_task_load_balance	master.cc	/^void  Dedupe:: object_task_load_balance(vector<vector<object_task*>>& task_queue)$/;"	f	class:danzer::Dedupe
+object_task_queue_clear	PRISM-/master.cc	/^char * Dedupe::object_task_queue_clear(vector<object_task*> &task_queue, int *task_num){$/;"	f	class:danzer::Dedupe
 object_task_queue_clear	master.cc	/^char * Dedupe::object_task_queue_clear(vector<object_task*> &task_queue, int *task_num){$/;"	f	class:danzer::Dedupe
+object_task_serialization	PRISM-/master.cc	/^void Dedupe:: object_task_serialization(object_task* task, char * buffer)$/;"	f	class:danzer::Dedupe
 object_task_serialization	master.cc	/^void Dedupe:: object_task_serialization(object_task* task, char * buffer)$/;"	f	class:danzer::Dedupe
+object_tasks_decomposition	PRISM-/mpitracer.cc	/^    void Dedupe::object_tasks_decomposition(const char* Msg, int cnt){$/;"	f	class:danzer::Dedupe
+object_tasks_decomposition	PRISM-/old_mpitracer.cc	/^    void Dedupe::object_tasks_decomposition(const char* Msg, int cnt){$/;"	f	class:danzer::Dedupe
 object_tasks_decomposition	mpitracer.cc	/^    void Dedupe::object_tasks_decomposition(const char* Msg, int cnt){$/;"	f	class:danzer::Dedupe
 object_tasks_decomposition	old_mpitracer.cc	/^    void Dedupe::object_tasks_decomposition(const char* Msg, int cnt){$/;"	f	class:danzer::Dedupe
-offset	mpitracer.h	/^    size_t offset;$/;"	m	struct:danzer::__anon2
-ost	mpitracer.h	/^        int ost; \/\/ ost index$/;"	m	struct:danzer::__anon3
+offset	PRISM-/mpitracer.h	/^    size_t offset;$/;"	m	struct:danzer::__anon2
+offset	mpitracer.h	/^    size_t offset;$/;"	m	struct:danzer::__anon8
+ost	PRISM-/mpitracer.h	/^        int ost; \/\/ ost index$/;"	m	struct:danzer::__anon3
+ost	mpitracer.h	/^        int ost; \/\/ ost index$/;"	m	struct:danzer::__anon9
+ostPerRank	PRISM-/mpitracer.h	/^    int ostPerRank = 0;$/;"	m	class:danzer::Dedupe
 ostPerRank	mpitracer.h	/^    int ostPerRank = 0;$/;"	m	class:danzer::Dedupe
+ost_cnt	PRISM-/mpitracer.h	/^    int ost_cnt = 0;$/;"	m	class:danzer::Dedupe
 ost_cnt	mpitracer.h	/^    int ost_cnt = 0;$/;"	m	class:danzer::Dedupe
+ost_map	PRISM-/mpitracer.h	/^    unordered_map<int, int> ost_map;$/;"	m	class:danzer::Dedupe
 ost_map	mpitracer.h	/^    unordered_map<int, int> ost_map;$/;"	m	class:danzer::Dedupe
+ost_q	PRISM-/mpitracer.h	/^    vector<OST_queue> ost_q;$/;"	m	class:danzer::Dedupe
 ost_q	mpitracer.h	/^    vector<OST_queue> ost_q;$/;"	m	class:danzer::Dedupe
 output	Makefile	/^output = danzer_obj$/;"	m
-output	ana-prism/Makefile	/^output = ana_prism$/;"	m
+output	PRISM-/Makefile	/^output = danzer_obj$/;"	m
+output	PRISM-/ana-prism/Makefile	/^output = ana_prism$/;"	m
+output_file	PRISM-/mpitracer.h	/^    string output_file;$/;"	m	class:danzer::Dedupe
 output_file	mpitracer.h	/^    string output_file;$/;"	m	class:danzer::Dedupe
-pos	mpitracer.h	/^    size_t pos;$/;"	m	struct:danzer::__anon1
+plt	io_time_analysis.py	/^import matplotlib.pyplot as plt$/;"	i
+pos	PRISM-/mpitracer.h	/^    size_t pos;$/;"	m	struct:danzer::__anon1
+pos	mpitracer.h	/^    size_t pos;$/;"	m	struct:danzer::__anon7
+pytorch	mpitracer.h	/^		mpas=0, grims, qchem, nastran, roms, abaqus, lammps, qe, qmc, pytorch$/;"	e	enum:danzer::Dedupe::dataset
+qchem	mpitracer.h	/^		mpas=0, grims, qchem, nastran, roms, abaqus, lammps, qe, qmc, pytorch$/;"	e	enum:danzer::Dedupe::dataset
+qe	mpitracer.h	/^		mpas=0, grims, qchem, nastran, roms, abaqus, lammps, qe, qmc, pytorch$/;"	e	enum:danzer::Dedupe::dataset
+qmc	mpitracer.h	/^		mpas=0, grims, qchem, nastran, roms, abaqus, lammps, qe, qmc, pytorch$/;"	e	enum:danzer::Dedupe::dataset
+rank	PRISM-/mpitracer.h	/^    int rank = 0;$/;"	m	class:danzer::Dedupe
 rank	mpitracer.h	/^    int rank = 0;$/;"	m	class:danzer::Dedupe
+readFile	PRISM-/mpitracer.cc	/^    string Dedupe::readFile(const string &fileName)$/;"	f	class:danzer::Dedupe
+readFile	PRISM-/old_mpitracer.cc	/^    string Dedupe::readFile(const string &fileName)$/;"	f	class:danzer::Dedupe
 readFile	mpitracer.cc	/^    string Dedupe::readFile(const string &fileName)$/;"	f	class:danzer::Dedupe
 readFile	old_mpitracer.cc	/^    string Dedupe::readFile(const string &fileName)$/;"	f	class:danzer::Dedupe
-readerThread	mpitracer.cc	/^        void* Dedupe::readerThread() {$/;"	f	class:danzer::Dedupe
+readerThread	PRISM-/mpitracer.cc	/^        void* Dedupe::readerThread() {$/;"	f	class:danzer::Dedupe
+readerThread	PRISM-/old_mpitracer.cc	/^        void* Dedupe::readerThread() {$/;"	f	class:danzer::Dedupe
+readerThread	mpitracer.cc	/^    void* Dedupe::readerThread() {$/;"	f	class:danzer::Dedupe
 readerThread	old_mpitracer.cc	/^        void* Dedupe::readerThread() {$/;"	f	class:danzer::Dedupe
+readerThreadStarter	PRISM-/mpitracer.cc	/^    void* Dedupe::readerThreadStarter(void* arg) {$/;"	f	class:danzer::Dedupe
+readerThreadStarter	PRISM-/old_mpitracer.cc	/^    void* Dedupe::readerThreadStarter(void* arg) {$/;"	f	class:danzer::Dedupe
 readerThreadStarter	mpitracer.cc	/^    void* Dedupe::readerThreadStarter(void* arg) {$/;"	f	class:danzer::Dedupe
 readerThreadStarter	old_mpitracer.cc	/^    void* Dedupe::readerThreadStarter(void* arg) {$/;"	f	class:danzer::Dedupe
+reader_idx	PRISM-/mpitracer.h	/^    atomic<int> reader_idx=0; \/\/worker_idx=0;$/;"	m	class:danzer::Dedupe
 reader_idx	mpitracer.h	/^    atomic<int> reader_idx=0; \/\/worker_idx=0;$/;"	m	class:danzer::Dedupe
-size	mpitracer.h	/^        uint64_t size; $/;"	m	struct:danzer::__anon3
-size	mpitracer.h	/^        uint64_t size;$/;"	m	struct:danzer::__anon5
+roms	mpitracer.h	/^		mpas=0, grims, qchem, nastran, roms, abaqus, lammps, qe, qmc, pytorch$/;"	e	enum:danzer::Dedupe::dataset
+size	PRISM-/mpitracer.h	/^        uint64_t size; $/;"	m	struct:danzer::__anon3
+size	PRISM-/mpitracer.h	/^        uint64_t size;$/;"	m	struct:danzer::__anon5
+size	mpitracer.h	/^        uint64_t size; $/;"	m	struct:danzer::__anon9
+size	mpitracer.h	/^        uint64_t size;$/;"	m	struct:danzer::__anon11
+size_per_ost	PRISM-/mpitracer.h	/^	uint64_t size_per_ost[OST_NUMBER] = {0};$/;"	m	class:danzer::Dedupe
 size_per_ost	mpitracer.h	/^	uint64_t size_per_ost[OST_NUMBER] = {0};$/;"	m	class:danzer::Dedupe
+size_per_rank	PRISM-/mpitracer.h	/^	uint64_t *size_per_rank;$/;"	m	class:danzer::Dedupe
 size_per_rank	mpitracer.h	/^	uint64_t *size_per_rank;$/;"	m	class:danzer::Dedupe
-start	mpitracer.h	/^        uint64_t start; \/\/ start offset$/;"	m	struct:danzer::__anon3
+start	PRISM-/mpitracer.h	/^        uint64_t start; \/\/ start offset$/;"	m	struct:danzer::__anon3
+start	mpitracer.h	/^        uint64_t start; \/\/ start offset$/;"	m	struct:danzer::__anon9
+start_pos	PRISM-/mpitracer.h	/^     uint64_t start_pos;$/;"	m	struct:danzer::chunk_entry
 start_pos	mpitracer.h	/^     uint64_t start_pos;$/;"	m	struct:danzer::chunk_entry
-taskQueue	mpitracer.h	/^        queue<object_task> taskQueue;$/;"	m	struct:danzer::__anon4
+taskQueue	PRISM-/mpitracer.h	/^        queue<object_task> taskQueue;$/;"	m	struct:danzer::__anon4
+taskQueue	mpitracer.h	/^        queue<object_task> taskQueue;$/;"	m	struct:danzer::__anon10
+task_cnt	PRISM-/mpitracer.h	/^	  uint64_t task_cnt = 0;$/;"	m	class:danzer::Dedupe
 task_cnt	mpitracer.h	/^	  uint64_t task_cnt = 0;$/;"	m	class:danzer::Dedupe
+task_cnt_per_rank	PRISM-/mpitracer.h	/^	  uint64_t task_cnt_per_rank = 0; $/;"	m	class:danzer::Dedupe
 task_cnt_per_rank	mpitracer.h	/^	  uint64_t task_cnt_per_rank = 0; $/;"	m	class:danzer::Dedupe
+tasks_per_ost	PRISM-/mpitracer.h	/^	vector <object_task> tasks_per_ost [OST_NUMBER];$/;"	m	class:danzer::Dedupe
 tasks_per_ost	mpitracer.h	/^	vector <object_task> tasks_per_ost [OST_NUMBER];$/;"	m	class:danzer::Dedupe
+test_chunk_cnt	PRISM-/mpitracer.h	/^  uint64_t test_chunk_cnt = 0; $/;"	m	class:danzer::Dedupe
 test_chunk_cnt	mpitracer.h	/^  uint64_t test_chunk_cnt = 0; $/;"	m	class:danzer::Dedupe
+test_load_balance_per_rank	PRISM-/mpitracer.cc	/^	void Dedupe::test_load_balance_per_rank()$/;"	f	class:danzer::Dedupe
+test_load_balance_per_rank	mpitracer.cc	/^	void Dedupe::test_load_balance_per_rank()$/;"	f	class:danzer::Dedupe
+total_file	PRISM-/mpitracer.h	/^    int total_file = 0; $/;"	m	class:danzer::Dedupe
 total_file	mpitracer.h	/^    int total_file = 0; $/;"	m	class:danzer::Dedupe
+total_file_count	PRISM-/mpitracer.h	/^    long long total_file_count;$/;"	m	class:danzer::FStat
 total_file_count	mpitracer.h	/^    long long total_file_count;$/;"	m	class:danzer::FStat
+total_file_size	PRISM-/mpitracer.h	/^    long long total_file_size;$/;"	m	class:danzer::FStat
+total_file_size	PRISM-/mpitracer.h	/^    uint64_t total_file_size = 0; $/;"	m	class:danzer::Dedupe
 total_file_size	mpitracer.h	/^    long long total_file_size;$/;"	m	class:danzer::FStat
 total_file_size	mpitracer.h	/^    uint64_t total_file_size = 0; $/;"	m	class:danzer::Dedupe
+traverse_directory	PRISM-/mpitracer.cc	/^    int Dedupe::traverse_directory(string directory_path){$/;"	f	class:danzer::Dedupe
+traverse_directory	PRISM-/old_mpitracer.cc	/^    int Dedupe::traverse_directory(string directory_path){$/;"	f	class:danzer::Dedupe
 traverse_directory	mpitracer.cc	/^    int Dedupe::traverse_directory(string directory_path){$/;"	f	class:danzer::Dedupe
 traverse_directory	old_mpitracer.cc	/^    int Dedupe::traverse_directory(string directory_path){$/;"	f	class:danzer::Dedupe
+workerThread	PRISM-/mpitracer.cc	/^    void* Dedupe::workerThread(int w_idx) {$/;"	f	class:danzer::Dedupe
+workerThread	PRISM-/old_mpitracer.cc	/^    void* Dedupe::workerThread() {$/;"	f	class:danzer::Dedupe
 workerThread	mpitracer.cc	/^    void* Dedupe::workerThread(int w_idx) {$/;"	f	class:danzer::Dedupe
 workerThread	old_mpitracer.cc	/^    void* Dedupe::workerThread() {$/;"	f	class:danzer::Dedupe
+workerThreadStarter	PRISM-/mpitracer.cc	/^     void* Dedupe::workerThreadStarter(void* arg) {$/;"	f	class:danzer::Dedupe
+workerThreadStarter	PRISM-/old_mpitracer.cc	/^    void* Dedupe::workerThreadStarter(void* arg) {$/;"	f	class:danzer::Dedupe
 workerThreadStarter	mpitracer.cc	/^     void* Dedupe::workerThreadStarter(void* arg) {$/;"	f	class:danzer::Dedupe
 workerThreadStarter	old_mpitracer.cc	/^    void* Dedupe::workerThreadStarter(void* arg) {$/;"	f	class:danzer::Dedupe
+worldSize	PRISM-/mpitracer.h	/^    int worldSize;$/;"	m	class:danzer::Dedupe
 worldSize	mpitracer.h	/^    int worldSize;$/;"	m	class:danzer::Dedupe
+~ChunkData	PRISM-/mpitracer.h	/^    ~ChunkData(){$/;"	f	class:danzer::ChunkData
 ~ChunkData	mpitracer.h	/^    ~ChunkData(){$/;"	f	class:danzer::ChunkData

@@ -43,6 +43,7 @@
 using namespace std;
 
 namespace danzer{
+	
 
   enum chunk_size{
         SZ_4K,
@@ -182,8 +183,8 @@ namespace danzer{
 			3342 * MB,	// qchem
 			53 * MB,	// nastran
 			5260 * MB,	// roms
-			10975 * MB,	// abaqus
-			351 * MB,	// lammps
+			10975 * MB, //1780 * MB, // 2457*MB, 		//5070 * MB,	//10975 * MB,	// abaqus
+			120 * MB, 		//351 * MB,	// lammps
 			8796 * MB,	// qe
 			82 * MB,	// qmc
 			10 * MB		// pytorch
@@ -271,6 +272,8 @@ namespace danzer{
     unordered_map<string, long long> fe_table;
 
   public:
+
+
     FStat () {
       total_file_count = 0;
       total_file_size = 0;

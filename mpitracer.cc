@@ -705,7 +705,27 @@ namespace danzer
 		int datasetIdx = dataset_map.find(Dataset.c_str())->second; 
         uint64_t standardized_load_size = StandardizedTaskSizePer24Process[datasetIdx];   
         uint64_t total_read_size = 0; 
-        bool standardized_task_done = false; 
+        bool standardized_task_done = false;
+		FILE * fp = fopen("log.eval", "a"); 
+		if (fp == NULL)
+			printf("file open error"); 
+		
+		int NumWorkers = rank - 1; 
+		
+		//string read_size_log = Dataset; 
+		string read_size_log = Dataset + to_string(NumWorkers); 
+		cout << "read_size log!!" << read_size_log; 
+
+
+		ofstream ofs(read_size_log, ios::app); 
+		if (!ofs)
+		{
+			cerr << "Error opening output file\n"; 
+			exit(0); 
+		}
+
+
+		printf("standardized data size: %lld\n", standardized_load_size); 
         
 
         while(1) {
@@ -767,16 +787,17 @@ namespace danzer
 						pthread_mutex_unlock(&buffer->mutex);
                     
                     
-						// Code for LoadStandarization Evaluation     
 						total_read_size += bytesRead;
+						// Code for LoadStandarization Evaluation     					
 						if (total_read_size >= standardized_load_size)
 						{
 							standardized_task_done = true; 
 							taskFound = false; 
 							break; 
-						}	
+						}
+						
 						 
-                    }
+                    } // end of for loop
                     close(fd);
 
 					// Code for Load Standardization Evaluation
@@ -786,7 +807,7 @@ namespace danzer
 					}
 				
 
-                }
+                } // end of while loop 
 				
 				if (standardized_task_done)
 				{
@@ -795,9 +816,17 @@ namespace danzer
 				
             }// end of for (looking for each OST Queue)
 
-            if (shutdown_flag && !taskFound) {
+			
+			// Ending condition for standardized task evaluation 
+			if (shutdown_flag || standardized_task_done){
+			// Ending condition for normal situaion
+            //if (shutdown_flag && !taskFound) {
 				reader_done = true;
-				printf("reader done %d: %lld\n", this->rank, total_read_size); 
+				printf("reader done %d\t%lld\n", this->rank, total_read_size); 
+				
+				ofs << total_read_size << '\n'; 
+				ofs.close(); 
+
 //				pthread_cond_signal(&buffer->cond); 
 
 				for(Buffer &b : bufferpool){
@@ -810,7 +839,7 @@ namespace danzer
 				
                 break;
             }
-        }
+        } // end of while loop 
 	return NULL;
     }
 
@@ -886,6 +915,7 @@ namespace danzer
 		Dataset = directory_path.substr(lastSlashPos + 1); 
 		
 
+
         // Initialize MPI environment
 	    int provided;
         MPI_Init_thread(NULL, NULL, MPI_THREAD_MULTIPLE, &provided);
@@ -902,6 +932,15 @@ namespace danzer
         cout << "Current process rank: " << this->rank << endl;
 
         if (rank == MASTER){
+
+	
+			FILE * fp = fopen("exec_time.eval", "a"); 
+			if (fp == NULL)
+				printf("file open error\n"); 
+			fprintf(fp, "%s\t", Dataset); 
+			fclose(fp); 
+
+
             vector <vector <object_task*>> task_queue(OST_NUMBER); 
 			// vector<uint64_t> num_tasks_per_ost (OST_NUMBER, 0);
 
@@ -1241,12 +1280,13 @@ int main(int argc, char **argv)
 	
 	if (rank == 0)
 	{
-		FILE * fp = fopen("exec_time.txt", "a"); 
+		FILE * fp = fopen("exec_time.eval", "a"); 
 		if (fp == NULL)
 			printf("file open error\n"); 
 		
-		fprintf(fp, "exec_time\t%lf\n", duration.count()); 
-        cout << "Execution time: " << duration.count() << " seconds" << endl;
+		fprintf(fp, "object_based\t%lf\n", duration.count()); 
+        cout << "\tExecution time: " << duration.count() << " seconds" << endl;
+		fclose(fp); 
 	}
 	return 0;
 

@@ -72,7 +72,7 @@ void Dedupe::layout_analysis(filesystem::directory_entry entry, vector<vector<ob
 			cout << "error: cannot get stripe information\n"; 
 			continue; 
 		}
-
+		
 		
 		interval = count * size; 
 		end = (end < file_size)? end : file_size; 
@@ -86,7 +86,6 @@ void Dedupe::layout_analysis(filesystem::directory_entry entry, vector<vector<ob
 				//cout << "error: cannot get ost index\n"; 
 				goto here_exit; 
 			}
-			
 			// Generate the task and push it into corresponding task_queue (We allocate queue as much as the number of the OST). 
 			task = object_task_generate(entry.path().c_str(), idx, start + i * size, end, interval, size);
 			this->task_cnt ++; 
@@ -98,9 +97,11 @@ void Dedupe::layout_analysis(filesystem::directory_entry entry, vector<vector<ob
 			uint64_t object_task_size = (end - start) / count; 
 			this->size_per_ost[task->ost] += object_task_size; 
 			//this->size_per_rank[task->ost % (worldSize-1) + 1] += object_task_size; 
-
-
+			
+			//TODO: Code lines between C and D has Segmentation part causing bugs.:
 			int dest_rank, num_binded_worker; 
+			
+			
 			if (OST_NUMBER >= worker_number)
 				dest_rank = task->ost % worker_number + 1; 
 			else // Otherwise, more than two worker process is binded to one OST, so tasks should be passed in round robin manner. 
@@ -111,7 +112,7 @@ void Dedupe::layout_analysis(filesystem::directory_entry entry, vector<vector<ob
 			}
 
 			size_per_rank[dest_rank] += object_task_size;
-
+			
 
 			// If task queue is full, then we send the tasks in the queue to corresponding Reader Process. 
 			if (!load_balance && task_queue[task->ost].size() == TASK_QUEUE_FULL)
@@ -128,10 +129,10 @@ void Dedupe::layout_analysis(filesystem::directory_entry entry, vector<vector<ob
 					int remainder = task->ost < (worker_number % OST_NUMBER)? 1:0;
 					num_binded_worker =  worker_number / OST_NUMBER + remainder;
 					dest_rank = (num_tasks_per_ost[task->ost] % num_binded_worker) * OST_NUMBER + task->ost;   
+					if (dest_rank == 0)
+						dest_rank = worker_number; 
 				}
 				num_tasks_per_ost[task->ost] += 1; 
-				printf("job: %d %d %d | %d %d\n", task->ost, dest_rank, num_binded_worker, worker_number, OST_NUMBER); 
-
 
 				// Send Msg to Read Processes(whose rank is OST_NUMBER & Read_Process_Num)
 				// MPI_SEND

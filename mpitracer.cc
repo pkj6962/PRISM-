@@ -569,9 +569,21 @@ namespace danzer
     void Dedupe::enqueue(OST_queue *ost_q, object_task task) {
         pthread_mutex_lock(&ost_q->mutex);
         // Enqueue task
+		/*
+		while (ost_q->taskQueue.size() == OST_QUEUE_FULL)
+		{
+			cout << "ost queue got full " <<  rank << endl ; 
+			pthread_cond_wait(&ost_q->cond, &ost_q->mutex); 
+			cout << "ost queue woke up  " <<  rank << endl ; 
+		}
+		*/
         ost_q->taskQueue.push(task);
         pthread_mutex_unlock(&ost_q->mutex);
-    }
+    
+	
+	
+	
+	}
 
     object_task Dedupe::dequeue(OST_queue *ost_q) {
         pthread_mutex_lock(&ost_q->mutex);
@@ -583,8 +595,10 @@ namespace danzer
         object_task task = ost_q->taskQueue.front();
         ost_q->taskQueue.pop();
 
-        pthread_cond_signal(&ost_q->cond);
-        pthread_mutex_unlock(&ost_q->mutex);
+        //pthread_cond_signal(&ost_q->cond);
+        pthread_cond_signal(&ost_q->cond_full); 
+		
+		pthread_mutex_unlock(&ost_q->mutex);
 
         return task;
     }
@@ -610,13 +624,16 @@ namespace danzer
 
         static int test_total_task = 0; 
         
-		char * buffer = (char*)malloc(sizeof(object_task) * 1500);
-		//char * buffer = (char*)malloc(sizeof(object_task) * TASK_QUEUE_FULL);
+		//char * buffer = (char*)malloc(sizeof(object_task) * 100000);
+		char * buffer = (char*)malloc(sizeof(object_task) * TASK_QUEUE_FULL);
         if (buffer == NULL)
             cout << "Memory allocation error\n";
         while(1) {
 			int flag;
+			
+			//original code
 			MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+			// temporary code (10.8)
 			//MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, &status);
             task_num = status.MPI_TAG;
 			
@@ -677,7 +694,7 @@ namespace danzer
             auto it = ost_map.find(task->ost);
             if (it == ost_map.end()) {
                 // If not, create new queue
-                this->ost_q.push_back(OST_queue());
+                this->ost_q.push_back(OST_queue()); // different part
 		        cout << "new ost queue\n";
                 // and add a mapping
                 ost_map[task->ost] = this->ost_cnt++;
@@ -700,30 +717,29 @@ namespace danzer
         Buffer * buffer; 
         int ostPerRank = this->ostPerRank;
 
+		
 
-		// Code for LoadStandardization Evaluation 
+		// Code for LoadStandardization Evaluation
+		int NumWorkers = worldSize-1; 
+		int NumWorkerIdx = NumWorkers/24 -1;
 		int datasetIdx = dataset_map.find(Dataset.c_str())->second; 
-        uint64_t standardized_load_size = StandardizedTaskSizePer24Process[datasetIdx];   
+		
+		printf("dataset: %s\n", Dataset); 
+		printf("idx1: %d idx2: %d\n", NumWorkerIdx, datasetIdx); 
+
+		uint64_t standardized_load_size = StandardizedTaskSizePerProcess[datasetIdx][NumWorkerIdx]; 
+		//uint64_t standardized_load_size = StandardizedTaskSizePer24Process[datasetIdx];   
         uint64_t total_read_size = 0; 
         bool standardized_task_done = false;
-		FILE * fp = fopen("log.eval", "a"); 
-		if (fp == NULL)
-			printf("file open error"); 
 		
-		int NumWorkers = rank - 1; 
-		
-		//string read_size_log = Dataset; 
 		string read_size_log = Dataset + to_string(NumWorkers); 
-		cout << "read_size log!!" << read_size_log; 
-
-
 		ofstream ofs(read_size_log, ios::app); 
 		if (!ofs)
 		{
 			cerr << "Error opening output file\n"; 
 			exit(0); 
 		}
-
+		
 
 		printf("standardized data size: %lld\n", standardized_load_size); 
         
@@ -789,13 +805,14 @@ namespace danzer
                     
 						total_read_size += bytesRead;
 						// Code for LoadStandarization Evaluation     					
+						/*
 						if (total_read_size >= standardized_load_size)
 						{
 							standardized_task_done = true; 
 							taskFound = false; 
 							break; 
 						}
-						
+						*/
 						 
                     } // end of for loop
                     close(fd);
@@ -818,9 +835,9 @@ namespace danzer
 
 			
 			// Ending condition for standardized task evaluation 
-			if (shutdown_flag || standardized_task_done){
+			//if (shutdown_flag || standardized_task_done){
 			// Ending condition for normal situaion
-            //if (shutdown_flag && !taskFound) {
+            if (shutdown_flag && !taskFound) {
 				reader_done = true;
 				printf("reader done %d\t%lld\n", this->rank, total_read_size); 
 				
@@ -903,7 +920,10 @@ namespace danzer
         for (int i = 0; i < ostPerRank; i++) {
             pthread_mutex_init(&(this->ost_q[i].mutex), NULL);
             pthread_cond_init(&(this->ost_q[i].cond), NULL);
-        }
+			// newly inserted code
+			pthread_cond_init(&(this->ost_q[i].cond_full), NULL); 
+			
+		}
     }
 
     int Dedupe::traverse_directory(string directory_path){
@@ -914,7 +934,10 @@ namespace danzer
 		size_t lastSlashPos = directory_path.find_last_of('/'); 
 		Dataset = directory_path.substr(lastSlashPos + 1); 
 		
-
+		if (Dataset.empty())
+			Dataset = "total"; 
+		   
+		
 
         // Initialize MPI environment
 	    int provided;
@@ -933,14 +956,7 @@ namespace danzer
 
         if (rank == MASTER){
 
-	
-			FILE * fp = fopen("exec_time.eval", "a"); 
-			if (fp == NULL)
-				printf("file open error\n"); 
-			fprintf(fp, "%s\t", Dataset); 
-			fclose(fp); 
-
-
+			puts("aasdfaa"); 
             vector <vector <object_task*>> task_queue(OST_NUMBER); 
 			// vector<uint64_t> num_tasks_per_ost (OST_NUMBER, 0);
 
@@ -958,11 +974,10 @@ namespace danzer
 
 
 			
-			
 			auto start = chrono::high_resolution_clock::now();
 			
 			for (const auto &dir_entry: filesystem::recursive_directory_iterator(directory_path)){
-                total_file ++ ;
+				total_file ++ ;
 
                 if(filesystem::is_symlink(dir_entry)){
                     cout << "Symlink encountered\n"; 
@@ -975,22 +990,23 @@ namespace danzer
                 }
 
                 unchecked_file ++ ; 
-            }
-		
-			
+		}
+
 			if (load_balance)
 			{
 				object_task_load_balance(task_queue); 
 			}
 			
+
+
             layout_end_of_process(task_queue); 
 
+
 			
-			test_load_balance_per_rank(); 
+			//test_load_balance_per_rank(); 
 			
 
             /*
-
             Iterate and Receive message from worker process so that 
 
             TODO: How to end this process? Maybe Worker process sends message with tag so that master can end.
@@ -1039,15 +1055,13 @@ namespace danzer
                 cout << "error: thread creation " << rc1 << endl;
                 exit(-1);
             }
-	
+		
             int rc2 = pthread_create(&reader, NULL, Dedupe::readerThreadStarter, this);
             if(rc2) {
                 cout << "error: thread creation " << rc2 << endl;
                 exit(-1);
             }
 			
-		printf("numworkers:%d\n", numWorkers) ;
-		printf("loadbalance: %d\n", load_balance);
 	    vector<pthread_t> workerThreads(numWorkers);
         vector<ThreadArgs> threadArgs(numWorkers);	
 		
@@ -1076,7 +1090,7 @@ namespace danzer
                 exit(-1);
             }
         }		
-    
+		
     
         }
 	
@@ -1152,7 +1166,7 @@ namespace danzer
         string output_file = this->output_file.c_str() + to_string(this->rank) + ".txt";
         //cout << "output_file = " << output_file << endl;
         // Open the output file
-        ofstream ofs(output_file, ios::app);
+        ofstream ofs(output_file, ios::out | ios::app);
         if (!ofs){
             cerr << "Error opening output file\n";
             exit(0);
@@ -1175,7 +1189,8 @@ int main(int argc, char **argv)
     int rank;
     int numWorkers = 1;
 	int load_balance = 1; 
-    while ((c = getopt(argc, argv, "f:s:m:i:o:t:l:")) != -1)
+	int numProc; 
+    while ((c = getopt(argc, argv, "f:s:m:i:o:t:l:n:")) != -1)
     {
         switch (c)
         {
@@ -1200,6 +1215,9 @@ int main(int argc, char **argv)
 		case 'l':
 			load_balance = atoi(optarg);	    
             break;
+		case 'n':
+			numProc = atoi(optarg); 
+			break; 
         default:
             break;
         }
@@ -1276,17 +1294,34 @@ int main(int argc, char **argv)
     // Calculate the duration
     chrono::duration<double> duration = end - start;
 
-    // Print the execution time
-	
+
+
 	if (rank == 0)
 	{
-		FILE * fp = fopen("exec_time.eval", "a"); 
-		if (fp == NULL)
-			printf("file open error\n"); 
+		size_t lastSlash = directory_path.rfind('/'); 
+		string Dataset = directory_path.substr(lastSlash+1); 
 		
-		fprintf(fp, "object_based\t%lf\n", duration.count()); 
+		
+		if (Dataset.empty())
+			Dataset = "total"; 
+		
+		printf("dataset: %d\n", Dataset); 
+
+		
+		
+		string result= "standardized_load_result.eval"; 
+		ofstream ofs(result, ios::out | ios::app); 
+		if (!ofs)
+		{
+			cerr << "Error opening output file\n"; 
+			exit(0); 
+		}
+		ofs << Dataset << '\t' << numProc << '\t' << "object" << '\t' << duration.count() << endl;  
+		
+		
+			
         cout << "\tExecution time: " << duration.count() << " seconds" << endl;
-		fclose(fp); 
+
 	}
 	return 0;
 

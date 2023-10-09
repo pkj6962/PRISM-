@@ -34,6 +34,10 @@
 #define POOL_SIZE 100 // 100 buffers in buffer pool
 #define OST_NUMBER 24
 #define TASK_QUEUE_FULL 4
+
+#define OST_QUEUE_FULL 50
+
+
 #define MAX_FILE_PATH_LEN 320 //320
 #define MASTER 0
 #define TERMINATION_MSG "TERMINATION"
@@ -117,6 +121,10 @@ namespace danzer{
         queue<object_task> taskQueue;
         pthread_mutex_t mutex;
         pthread_cond_t cond;
+		// newly inserted code
+		pthread_cond_t cond_full; 
+		
+
     } OST_queue;
 
     typedef struct {
@@ -170,24 +178,46 @@ namespace danzer{
 
 	string Dataset; 
 	enum dataset{
-		mpas=0, grims, qchem, nastran, roms, abaqus, lammps, qe, qmc, pytorch
+		mpas=0, grims, qchem, roms, abaqus, lammps, qe, qmc,cesm,  msc, total
 	}; 
 	map<string, dataset> dataset_map = boost::assign::map_list_of
-		("mpas", mpas)("grims", grims)("nastran", nastran)("roms", roms)("abaqus", abaqus)("lammps", lammps)("qe", qe)("qmc", qmc)("pytorch", pytorch); 
+		("mpas", mpas)("grims", grims)("qchem", qchem)("roms", roms)("abaqus", abaqus)("lammps", lammps)("qe", qe)("qmc", qmc)("cesm", cesm)("msc", msc)("dataset", total); 
 
 
+	
+	
+	uint64_t StandardizedTaskSizePerProcess[12][4] =
+	{
+		{}, // 1mpas 
+		{}, // 2grims
+		{}, // 3qchem  
+		{5515509760,	2143045504,	732649767,	857382650}, // 4roms 
+		{1780 * MB, 1780 * MB, 1780 * MB, 1780 * MB}, 
+		//{5515509760,	2143045504,	732649767,	857382650}, // 4roms -> temp: expr to abaqus 
+		//{}, // 5abaqus 
+		{}, // 6lammps
+		{2803391651,	1302645772,	849047750,	544757172}, // 7qe
+		{}, // qmc 
+		{}, // cesm 
+		{4828968097,	2358521078,	0,	958400427}, // msc
+		{}, // grommacs 
+		{} // siesta 
+	};
+
+	
 	uint64_t StandardizedTaskSizePer24Process[10] =
 		{
 			917 * MB,	// mpas 
 			335 * MB,	// grims
-			3342 * MB,	// qchem
-			53 * MB,	// nastran
+			3342 * MB,	// qchem <- nastran?
+			//53 * MB,	// nastran
 			5260 * MB,	// roms
 			10975 * MB, //1780 * MB, // 2457*MB, 		//5070 * MB,	//10975 * MB,	// abaqus
 			120 * MB, 		//351 * MB,	// lammps
 			8796 * MB,	// qe
 			82 * MB,	// qmc
-			10 * MB		// pytorch
+			10 * MB, 		// pytorch
+			2000 * MB // dataset 96 processses 
 		};
 
 	

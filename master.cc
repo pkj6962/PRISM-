@@ -79,6 +79,7 @@ void Dedupe::layout_analysis(filesystem::directory_entry entry, vector<vector<ob
 		// For each stripe, Get OST index and create Task that contains the information about what to read that will be sent to each Reader Process 
 		for (int i = 0; i < count; i ++)
 		{	
+
 			// Get OST index 
 			rc[0] = llapi_layout_ost_index_get(layout, i, &idx); 
 			// If OST information cannot be taken, it means that we get all the OST idx that stores the object of the file and we can break out of the loop. 
@@ -87,56 +88,72 @@ void Dedupe::layout_analysis(filesystem::directory_entry entry, vector<vector<ob
 				goto here_exit; 
 			}
 			// Generate the task and push it into corresponding task_queue (We allocate queue as much as the number of the OST). 
+			
 			task = object_task_generate(entry.path().c_str(), idx, start + i * size, end, interval, size);
 			this->task_cnt ++; 
 
-			task_queue[task->ost].push_back(task); 
+			int task_ost = task->ost;
 
+			task_queue[task_ost].push_back(task); 
 
+			//delete task; 
+			
 			// load balancing code 
 			uint64_t object_task_size = (end - start) / count; 
-			this->size_per_ost[task->ost] += object_task_size; 
+			this->size_per_ost[task_ost] += object_task_size; 
 			//this->size_per_rank[task->ost % (worldSize-1) + 1] += object_task_size; 
 			
-			//TODO: Code lines between C and D has Segmentation part causing bugs.:
 			int dest_rank, num_binded_worker; 
 			
 			
 			if (OST_NUMBER >= worker_number)
-				dest_rank = task->ost % worker_number + 1; 
+				dest_rank = task_ost % worker_number + 1; 
 			else // Otherwise, more than two worker process is binded to one OST, so tasks should be passed in round robin manner. 
 			{	
 				int remainder = task->ost < (worker_number % OST_NUMBER)? 1:0;
 				num_binded_worker =  worker_number / OST_NUMBER + remainder;
-				dest_rank = (num_tasks_per_ost[task->ost] % num_binded_worker) * OST_NUMBER + task->ost;   
+				dest_rank = (num_tasks_per_ost[task_ost] % num_binded_worker) * OST_NUMBER + task_ost;   
+				if (dest_rank == 0)
+					dest_rank = worker_number; 
+
 			}
 
 			size_per_rank[dest_rank] += object_task_size;
 			
+			
 
 			// If task queue is full, then we send the tasks in the queue to corresponding Reader Process. 
-			if (!load_balance && task_queue[task->ost].size() == TASK_QUEUE_FULL)
+			
+			if (!load_balance && task_queue[task_ost].size() == TASK_QUEUE_FULL)
 			{
 		
-				char * Msg = object_task_queue_clear(task_queue[task->ost], NULL); 
+				char * Msg = object_task_queue_clear(task_queue[task_ost], NULL); 
 				int dest_rank, num_binded_worker; 
 				
 				// IF the number of OST exceeds the number of worker process, then Each OST is binded only to one worker process. 
 				if (OST_NUMBER >= worker_number)
-					dest_rank = task->ost % worker_number + 1; 
+					dest_rank = task_ost % worker_number + 1; 
 				else // Otherwise, more than two worker process is binded to one OST, so tasks should be passed in round robin manner. 
 				{	
-					int remainder = task->ost < (worker_number % OST_NUMBER)? 1:0;
+					int remainder = task_ost < (worker_number % OST_NUMBER)? 1:0;
 					num_binded_worker =  worker_number / OST_NUMBER + remainder;
-					dest_rank = (num_tasks_per_ost[task->ost] % num_binded_worker) * OST_NUMBER + task->ost;   
+					dest_rank = (num_tasks_per_ost[task_ost] % num_binded_worker) * OST_NUMBER + task_ost;   
 					if (dest_rank == 0)
 						dest_rank = worker_number; 
+					
+
+
 				}
-				num_tasks_per_ost[task->ost] += 1; 
+				num_tasks_per_ost[task_ost] += 1; 
+				
 
 				// Send Msg to Read Processes(whose rank is OST_NUMBER & Read_Process_Num)
 				// MPI_SEND
+				
+				// 실제 코드 
 				int rc = MPI_Ssend(Msg, sizeof(object_task) * TASK_QUEUE_FULL, MPI_CHAR, dest_rank, TASK_QUEUE_FULL, MPI_COMM_WORLD); 
+				
+				
 				// int rc = MPI_Ssend(Msg, sizeof(object_task) * TASK_QUEUE_FULL, MPI_CHAR, task->ost % (worldSize-1) + 1, TASK_QUEUE_FULL, MPI_COMM_WORLD); 
 				if (rc != MPI_SUCCESS)
 					cout << "MPI Send Failed\n"; 
@@ -146,6 +163,7 @@ void Dedupe::layout_analysis(filesystem::directory_entry entry, vector<vector<ob
 				delete[] Msg;
 
 			}	
+			//delete task;
 		}
 		rc[0] = llapi_layout_comp_use (layout, 3); 
 		if (rc[0] == 0)
@@ -165,6 +183,7 @@ void Dedupe::layout_end_of_process(vector<vector<object_task*>> &task_queue){
 	char termination_task[20];
 	strcpy(termination_task, TERMINATION_MSG);
 
+	puts("qwerqwer"); 
 
 	for (int ost = 0; ost < OST_NUMBER; ost++)
 	{
@@ -184,16 +203,15 @@ void Dedupe::layout_end_of_process(vector<vector<object_task*>> &task_queue){
 			int remainder = ost < (worker_number % OST_NUMBER)? 1:0;
 			num_binded_worker =  worker_number / OST_NUMBER + remainder;
 			dest_rank = (num_tasks_per_ost[ost] % num_binded_worker) * OST_NUMBER + ost;   
-
-		
-		
-		}		
+			
+			if (dest_rank == 0)
+				dest_rank = worker_number; 
+		}	
 		int rc = MPI_Ssend(Msg, sizeof(object_task) * task_num, MPI_CHAR, dest_rank, task_num, MPI_COMM_WORLD); 
 		// int rc = MPI_Ssend(Msg, sizeof(object_task) * task_num, MPI_CHAR, ost % (worldSize-1) + 1, task_num, MPI_COMM_WORLD); 
 		//int rc = MPI_Ssend(Msg, s	izeof(object_task) * TASK_QUEUE_FULL, MPI_CHAR, ost % (worldSize-1) + 1, task_num, MPI_COMM_WORLD); 
-		// if (rc != MPI_SUCCESS)
-			// cout << "MPI Send Failed\n";
-		
+		if (rc != MPI_SUCCESS)
+			cout << "MPI Send Failed\n";
 		object_task_buffer_free(Msg); 
 
 	}
@@ -301,6 +319,9 @@ char * Dedupe::object_task_queue_clear(vector<object_task*> &task_queue, int *ta
 		object_task_serialization(task, buffer); 
 		Msg_Push(buffer, Msg, idx); 
 		idx ++; 
+		
+		// Added Code 
+	
 	}
 	delete[] buffer;
 

@@ -270,6 +270,8 @@ namespace danzer{
     object_task* object_task_generate(const char* file_path, int ost, uint64_t start, uint64_t end, uint64_t interval, uint64_t size); 
 	
 	// load balance distribution code 
+	
+	static bool taskQueueCompare (const object_task* task1, const object_task * task2);
 	void object_task_load_balance(vector<vector<object_task*>>& task_queue);
     
 		

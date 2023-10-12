@@ -105,6 +105,8 @@ void Dedupe::layout_analysis(filesystem::directory_entry entry, vector<vector<ob
 			
 			int dest_rank, num_binded_worker; 
 			
+			// temp code: should be deleted right away 
+			worker_number = 1;
 			
 			if (OST_NUMBER >= worker_number)
 				dest_rank = task_ost % worker_number + 1; 
@@ -126,7 +128,7 @@ void Dedupe::layout_analysis(filesystem::directory_entry entry, vector<vector<ob
 			
 			if (!load_balance && task_queue[task_ost].size() == TASK_QUEUE_FULL)
 			{
-		
+	
 				char * Msg = object_task_queue_clear(task_queue[task_ost], NULL); 
 				int dest_rank, num_binded_worker; 
 				
@@ -183,7 +185,6 @@ void Dedupe::layout_end_of_process(vector<vector<object_task*>> &task_queue){
 	char termination_task[20];
 	strcpy(termination_task, TERMINATION_MSG);
 
-	puts("qwerqwer"); 
 
 	for (int ost = 0; ost < OST_NUMBER; ost++)
 	{
@@ -228,6 +229,418 @@ void Dedupe::Msg_Push(char * buffer, char * Msg, int idx){
 }
 
 
+/*
+현재 로드 발란싱의 한계 
+1. 워커 프로세스의 개수가 24개 미만(12개 이하)의 경우에 대해서만 유효한 구현 방식 
+2. MPI_Send로 큐에 저장된 데이터를  한꺼번에 보내는 방식은 부담. 
+*/
+
+
+
+
+bool Dedupe:: taskQueueCompare (const object_task* task1, const object_task * task2)
+{
+	uint64_t task_size1 = (task1->end - task1->start) / (task1->interval / task1->size); 
+	uint64_t task_size2 = (task2->end - task2->start) / (task2->interval / task2->size); 
+	
+	return task_size1 > task_size2; 
+}
+
+
+
+void  Dedupe:: object_task_load_balance(vector<vector<object_task*>>& task_queue)
+{
+	uint64_t ost_size_mean = 0; 
+	for (int i = 0; i < OST_NUMBER; i ++)
+	{
+		ost_size_mean += size_per_ost[i]; 
+	}
+	ost_size_mean /= OST_NUMBER; 
+
+	
+	vector <int> highGroup; 
+	auto compareSecondElement =
+		[](const std::pair<int, uint64_t>& p1, const std::pair<int, uint64_t>& p2) {
+				return p1.second > p2.second; 
+				// ">" for ascending order, "<" for descending order
+		};
+
+	priority_queue<pair<int, uint64_t>, vector<pair<int, uint64_t>>, decltype(compareSecondElement)>	 lowGroup(compareSecondElement);
+
+
+	for (int i = 0; i < OST_NUMBER; i ++)
+	{
+		if (size_per_ost[i] < ost_size_mean) 
+		{	
+			auto p = make_pair(i, size_per_ost[i]); 
+			lowGroup.push(p); 
+		}
+		else
+		{
+			highGroup.push_back(i); 
+		}
+	}
+
+
+
+
+	// 검증
+	
+	printf("mean: %lld\n", ost_size_mean); 
+	/*
+	uint64_t stddev = 0; 
+	printf("high group:\n"); 
+	for (int idx:highGroup)
+	{
+		printf("%d\t%lld\n", idx, size_per_ost[idx]);  
+
+		stddev += (size_per_ost[idx] - ost_size_mean) * (size_per_ost[idx] - ost_size_mean); 
+		
+		sort(task_queue[idx].begin(), task_queue[idx].end(), taskQueueCompare); 
+		
+	}
+
+	printf("low group:\n"); 
+	while (!lowGroup.empty())
+	{
+		auto p = lowGroup.top(); 
+		lowGroup.pop(); 
+
+		printf("%d\t%lld\n", p.first, p.second); 
+		
+		uint64_t dev = p.second - ost_size_mean;
+		stddev += dev * dev ;
+
+		//lowGroup.push(p); 
+	}
+
+	stddev /= OST_NUMBER; 
+	printf("stddev: %lld\n", stddev); 
+	*/
+	
+	int low_idx;
+	uint64_t low_ost_size;
+	int count = 0; 
+	for (int idx:highGroup)
+	{
+		//while (1)
+		sort(task_queue[idx].begin(), task_queue[idx].end(), taskQueueCompare); 
+		while (size_per_ost[idx] > ost_size_mean)
+		{
+			
+			if (task_queue[idx].empty())
+			{
+				puts("task_queue is empty");
+				break; 
+			}
+			auto task = task_queue[idx].back();
+			task_queue[idx].pop_back(); 
+			
+
+			// this is the false task: contain empty job
+			if (task->start > task->end)
+			{
+				continue; 
+			}
+
+			uint64_t object_task_size = (task->end - task->start) / (task->interval / task->size); 
+			//printf("%lld %lld %lld %lld %lld\n", object_task_size, task->end, task->start, task->interval, task->size); 
+
+
+			// 만약 지금 task를 꺼내서 task_queue의 전체 크기가 평균 미만으로 떨어지면 다시 그 task를 넣고 break함. 
+			if (size_per_ost[idx] - object_task_size < ost_size_mean)
+			{
+				task_queue[idx].push_back(task); 
+				break; 
+			}
+		
+			auto p = lowGroup.top();
+			lowGroup.pop(); 
+
+			low_idx = p.first; 
+			low_ost_size = p.second; 
+
+			// 만약 지금 Task를 lowGroup의 task_queue에 넣어서 그 큐의 전체 큐기가 평균 이상으로 올라가면 원래 큐에 넣고 break함.
+			if (low_ost_size + object_task_size > ost_size_mean)
+			{
+				task_queue[idx].push_back(task); 
+				lowGroup.push(p); 
+				break; 
+			}
+			
+
+
+			task_queue[low_idx].push_back(task); 
+			low_ost_size += object_task_size; 
+			size_per_ost[idx] -= object_task_size; 
+			
+	
+			p.second = low_ost_size; 
+			lowGroup.push(p); 
+			count ++; 
+			
+		}
+	} // end of for loop
+	
+	printf("cnt: %d\n", count); 
+	printf("high group:\n"); 
+
+
+	int64_t stddev=0; 
+	int64_t dev, dev_mb; 
+	for (int idx: highGroup)
+	{
+		printf("%d\t %lld\n", idx, size_per_ost[idx]); 
+		dev = size_per_ost[idx] - ost_size_mean; 
+		dev_mb = dev / 1048576; 
+		
+		//printf("dev: %lld %lld %lld  %lld\n", size_per_ost[idx], ost_size_mean, dev, dev_mb); 
+		
+		stddev += dev_mb * dev_mb; 
+	}
+
+	printf("low group: %d\n", lowGroup.size()); 
+	while (!lowGroup.empty())
+	{
+		auto p = lowGroup.top(); 
+		lowGroup.pop(); 
+
+		dev = p.second - ost_size_mean; 
+		dev_mb = dev / 1048576; 
+		stddev += dev_mb * dev_mb; 
+		
+		printf("%d\t%lld\n", p.first, p.second); 
+	}
+
+	stddev = stddev / OST_NUMBER; 
+
+	printf("stddev: %lld MB\n", stddev); 
+
+	
+	int task_num; 
+	for (int i = 0 ; i < OST_NUMBER; i++)
+	{
+		/*
+		while (task_queue[i].size() < TASK_QUEUE_FULL)
+		{
+			
+
+
+		*/
+		char * Msg = object_task_queue_clear (task_queue[i], &task_num); 
+
+		printf("task_num: %d\n", task_num); 
+			
+		int rc = MPI_Send(Msg, sizeof(object_task) * task_num, MPI_CHAR, i+1, task_num, MPI_COMM_WORLD); 
+		if (rc != MPI_SUCCESS)
+			cout << "MPI Send Failed\n"; 
+	
+		/*
+		
+		   }
+		*/
+	
+	
+	
+	}
+	
+	
+
+	/*
+		ddwhile taskqueue is not empty 
+			msg = object_task_queue_clear (taskqueue, )
+
+			dest_rank <-  
+		
+			MPI_Send(msg)
+
+	
+
+
+		char * Msg = object_task_queue_clear(task_queue[i], &task_num);
+		
+		printf("task_num: %d\n", task_num); 
+		int rc = MPI_Send(Msg, sizeof(object_task) * task_num, MPI_CHAR, rank, task_num, MPI_COMM_WORLD);
+		if (rc != MPI_SUCCESS)
+			cout << "MPI Send Failed\n";
+	*/
+
+
+	
+/*
+	
+
+
+
+
+
+
+검증: 
+
+for idx in largerThanMean
+	print(size_per_ost[idx])
+	stddev <- pow(size_per_ost[idx] - mean) 
+
+while !smallerThanMean.empty()
+	p = smallerThanMean.pop() 
+	print(p.second)
+	stddev <- pow(size_per_ost[idx] - mean)
+
+stddev /= OST_NUMBER
+for idx in largerThanMean
+	while size_per_ost[idx] > mean
+		task = task_queue[idx].pop
+
+		object_task_size <- task로부터 size 구하기 
+	
+		object_task_size = (task.end - task.start) / (task.interval / task.size) 
+
+		size_per_ost[idx] -= object_task_size
+
+		p = smallerThanMean.pop()
+		idx2 = p->first
+		size = p->second
+
+		task_queue[idx2].push(task)
+
+		size
+		object_task_size = task
+
+
+		size += objct_task_size
+
+		p->second = size
+
+		smallerThanMean.push(p)
+
+
+	*/ 
+
+	puts("vv"); 
+}
+
+
+/*
+구현 알고리즘 
+1. mean <- size_per_ost 의 평균을 구함.
+
+
+2.
+
+vector <int> highGroup; 
+auto compareSecondElement =
+	[](const std::pair<int, uint64_t>& p1, const std::pair<int, uint64_t>& p2) {
+			return p1.second > p2.second; 
+			// ">" for ascending order, "<" for descending order
+	};
+
+priority_queue<pair<int, uint64_t>, vector<pair<int, uint64_t>>, decltype(compareSecondElement)>	 lowGroup(compareSecondElement);
+
+
+for (int i = 0; i < OST_NUMBER; i ++)
+{
+	if (size_per_ost[i] < ost_size_mean) 
+	{	
+		auto p = make_pair(i, size_per_ost[i]); 
+		lowGroup.push(p); 
+	}
+	else
+	{
+		highGroup.push(i); 
+	}
+}
+
+
+
+for i = 0 to OST_NUMBER
+	if size_per_ost[i] < mean 
+		largerThanMean.push(i) <- array
+	else
+		smallerThanMean.push(i) <- priority Queue
+
+
+for idx in largerThanMean
+	while size_per_ost[idx] > mean
+		task = task_queue[idx].pop
+
+		object_task_size <- task로부터 size 구하기 
+		size_per_ost[idx] -= object_task_size
+
+		p = smallerThanMean.pop()
+		idx2 = p->first
+		size = p->second
+
+		task_queue[idx2].push(task)
+		size += objct_task_size
+
+		p->second = size
+
+		smallerThanMean.push(p)
+
+
+	
+for each taskQueue 
+	MPI_Send to Binded worker process.
+
+
+
+
+
+검증: 
+
+for idx in largerThanMean
+	print(size_per_ost[idx])
+	stddev <- pow(size_per_ost[idx] - mean) 
+
+while !smallerThanMean.empty()
+	p = smallerThanMean.pop() 
+	print(p.second)
+	stddev <- pow(size_per_ost[idx] - mean)
+
+stddev /= OST_NUMBER
+
+print(stddev)
+
+
+
+Bin Packing Algorithm
+
+while size_per_ost[i] 가 mean에 수렴할 때까지
+	가장 큰 OST i 의 작업 task_queue[i]을 빼서 가장 작은 OST j의 작업큐 task_queue[]에 넣음.
+	각각의 size_per_ost[i], size_per_ost[j]를 조정함. 
+
+
+평균보다 높은 OST의 집합: 작업을 오프로딩해야 하는 작업큐   -> 배열 
+평균보다 낮은 OST의 집합: 작업을 오프로딩받아야 하는 작업큐  -> 우선순위 큐 
+
+
+
+
+
+
+
+for 평균보다 높은 OST의 배열 
+	while 해당 배열이 평균에 수렴할 때까지 
+		p = 우선순위큐.pop
+		j = p.first
+
+		size_per_ost[i] -= object_task_size; 
+		p.second += object_task_size
+		
+		task = task_queue[i].pop();
+		task_queue[j].push(task)
+		
+		우선순위큐.push(p)  
+
+
+
+
+*/   
+
+
+/*
+
+
 // Load Balancing code
 void  Dedupe:: object_task_load_balance(vector<vector<object_task*>>& task_queue)
 {
@@ -243,11 +656,12 @@ void  Dedupe:: object_task_load_balance(vector<vector<object_task*>>& task_queue
 		auto p = make_pair(i, 0);
 		total_size_per_rank.push(p);
 	}
+	// Sort Task bucket per OST in order of size ascending order 
 	sort(this->size_per_ost, this->size_per_ost + OST_NUMBER, greater<uint64_t>());
 	
 	int task_num;
 		  
-			 // Distribute tasks from each OST to the rank whose size is minimal. 
+	// Distribute tasks from each OST to the rank whose size is minimal. 
 	for (int i = 0; i < OST_NUMBER; i++)
 	{
 		// Get the rank which contains least size of tasks.
@@ -291,20 +705,32 @@ void  Dedupe:: object_task_load_balance(vector<vector<object_task*>>& task_queue
 	 }// test purpose code
 	*/
 
+/*
 }
+
+*/
 
 char * Dedupe::object_task_queue_clear(vector<object_task*> &task_queue, int *task_num){
 	
-	char * Msg = new char[sizeof(object_task) * task_queue.size()]; 
-	//char * Msg = new char[sizeof(object_task) * TASK_QUEUE_FULL];
+	//char * Msg = new char[sizeof(object_task) * task_queue.size()]; 
+	char * Msg = new char[sizeof(object_task) * TASK_QUEUE_FULL];
 	if (Msg == nullptr){
 		cout << "Memory allocation error\n"; 
 		return nullptr;
 	}
 
-	if (task_num != nullptr)
-		*task_num = task_queue.size(); 
+	if (task_num != nullptr){
+		//*task_num = task_queue.size(); 
+		
+		// test code 
+		/*
+		if (task_queue.size() < TASK_QUEUE_FULL)
+			*task_num = task_queue.size(); 
+		else
+		*/
+			*task_num = TASK_QUEUE_FULL; 
 
+	}
 	char* buffer = new char[sizeof(object_task)];
 	if(buffer == nullptr){
 		cout << "Memory allocation error\n";
@@ -320,7 +746,8 @@ char * Dedupe::object_task_queue_clear(vector<object_task*> &task_queue, int *ta
 		Msg_Push(buffer, Msg, idx); 
 		idx ++; 
 		
-		// Added Code 
+		// Test code : should be deleted right away 
+		if (idx == TASK_QUEUE_FULL) break; 
 	
 	}
 	delete[] buffer;

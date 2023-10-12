@@ -980,7 +980,7 @@ namespace danzer
 				total_file ++ ;
 
                 if(filesystem::is_symlink(dir_entry)){
-                    cout << "Symlink encountered\n"; 
+                    //cout << "Symlink encountered\n"; 
                     continue; 
                 }
 				
@@ -995,11 +995,12 @@ namespace danzer
 			if (load_balance)
 			{
 				object_task_load_balance(task_queue); 
+				puts("ss"); 
 			}
 			
 
 
-            layout_end_of_process(task_queue); 
+            //layout_end_of_process(task_queue); 
 
 
 			
@@ -1015,7 +1016,7 @@ namespace danzer
 
 
 
-
+			puts("kk"); 
 
 
 			printf("unchecked file: %d/%d\n", unchecked_file, total_file); 
@@ -1055,7 +1056,7 @@ namespace danzer
                 cout << "error: thread creation " << rc1 << endl;
                 exit(-1);
             }
-		
+	/*	
             int rc2 = pthread_create(&reader, NULL, Dedupe::readerThreadStarter, this);
             if(rc2) {
                 cout << "error: thread creation " << rc2 << endl;
@@ -1076,10 +1077,10 @@ namespace danzer
                 }
             }	
 	
-	
+	*/
         (void)pthread_join(comm, NULL);
       
-	
+	/*
 		(void)pthread_join(reader, NULL);
         // // (void)pthread_join(worker, NULL);
 
@@ -1091,12 +1092,13 @@ namespace danzer
             }
         }		
 		
-    
+    */
         }
 	
         // Finalize MPI environment
+		puts("zz"); 
         MPI_Finalize();
-
+		puts("ww"); 
         return rank;
 
     }

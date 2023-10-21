@@ -106,7 +106,7 @@ void Dedupe::layout_analysis(filesystem::directory_entry entry, vector<vector<ob
 			int dest_rank, num_binded_worker; 
 			
 			// temp code: should be deleted right away 
-			worker_number = 1;
+			//worker_number = 1;
 			
 			if (OST_NUMBER >= worker_number)
 				dest_rank = task_ost % worker_number + 1; 
@@ -220,6 +220,22 @@ void Dedupe::layout_end_of_process(vector<vector<object_task*>> &task_queue){
     	MPI_Ssend(termination_task, sizeof(TERMINATION_MSG), MPI_CHAR, i, 0, MPI_COMM_WORLD);
 		cout << "termination msg sent\n";
 	}
+
+	
+	string ost_size_distribution = "ost_size_distribution.eval";  
+	ofstream ofs(ost_size_distribution, ios::app); 
+	if (!ofs)
+	{
+		cerr << "Error opening output file\n"; 
+		exit(0); 
+	}
+
+	ofs << Dataset << '\n'; 
+	for (int i = 0; i < OST_NUMBER; i++)
+	{
+		ofs << size_per_ost[i] << endl; 
+	}
+
 }
 
 // Push IDX th BUFFER into Large MSG data structure. BUFFER is at the IDX th position on the Msg 
@@ -368,8 +384,9 @@ void  Dedupe:: object_task_load_balance(vector<vector<object_task*>>& task_queue
 				break; 
 			}
 			
-
-
+			// comm Thread 구현상 task의 ost를 바꿔주고 넘겨줘야 함.
+			task->ost = low_idx; 
+			
 			task_queue[low_idx].push_back(task); 
 			low_ost_size += object_task_size; 
 			size_per_ost[idx] -= object_task_size; 
@@ -417,31 +434,26 @@ void  Dedupe:: object_task_load_balance(vector<vector<object_task*>>& task_queue
 	printf("stddev: %lld MB\n", stddev); 
 
 	
-	int task_num; 
+	int task_num;
+	printf("task count\n"); 
 	for (int i = 0 ; i < OST_NUMBER; i++)
 	{
-		/*
-		while (task_queue[i].size() < TASK_QUEUE_FULL)
+		printf("ost\t%d\t%d\n", i, task_queue[i].size()); 
+		while (task_queue[i].size() >= TASK_QUEUE_FULL)
 		{
 			
+			char * Msg = object_task_queue_clear (task_queue[i], &task_num); 
 
-
-		*/
-		char * Msg = object_task_queue_clear (task_queue[i], &task_num); 
-
-		printf("task_num: %d\n", task_num); 
+			int dest_rank; 
+			int worker_number = worldSize - 1; 
+			if (OST_NUMBER >= worker_number)
+				dest_rank = i % worker_number + 1; 
+			int rc = MPI_Ssend(Msg, sizeof(object_task) * task_num, MPI_CHAR, dest_rank, task_num, MPI_COMM_WORLD); 
+			if (rc != MPI_SUCCESS)
+				cout << "MPI Send Failed\n"; 
 			
-		int rc = MPI_Send(Msg, sizeof(object_task) * task_num, MPI_CHAR, i+1, task_num, MPI_COMM_WORLD); 
-		if (rc != MPI_SUCCESS)
-			cout << "MPI Send Failed\n"; 
-	
-		/*
-		
 		   }
-		*/
-	
-	
-	
+		
 	}
 	
 	
@@ -723,11 +735,10 @@ char * Dedupe::object_task_queue_clear(vector<object_task*> &task_queue, int *ta
 		//*task_num = task_queue.size(); 
 		
 		// test code 
-		/*
+		
 		if (task_queue.size() < TASK_QUEUE_FULL)
 			*task_num = task_queue.size(); 
 		else
-		*/
 			*task_num = TASK_QUEUE_FULL; 
 
 	}

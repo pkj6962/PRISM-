@@ -33,7 +33,8 @@
 #define BUFFER_SIZE 2097152 // 2M buffer
 #define POOL_SIZE 100 // 100 buffers in buffer pool
 #define OST_NUMBER 24
-#define TASK_QUEUE_FULL 4
+//#define TASK_QUEUE_FULL 4
+#define TASK_QUEUE_FULL 1 
 
 #define OST_QUEUE_FULL 50
 
@@ -178,10 +179,10 @@ namespace danzer{
 
 	string Dataset; 
 	enum dataset{
-		mpas=0, grims, qchem, roms, abaqus, lammps, qe, qmc,cesm,  msc, total
+		mpas=0, grims, qchem, roms, abaqus, lammps, qe, qmc,cesm,  msc, grommacs, siesta, total
 	}; 
 	map<string, dataset> dataset_map = boost::assign::map_list_of
-		("mpas", mpas)("grims", grims)("qchem", qchem)("roms", roms)("abaqus", abaqus)("lammps", lammps)("qe", qe)("qmc", qmc)("cesm", cesm)("msc", msc)("dataset", total); 
+		("mpas", mpas)("grims", grims)("qchem", qchem)("roms", roms)("abaqus", abaqus)("lammps", lammps)("qe", qe)("qmc", qmc)("cesm", cesm)("msc", msc)("grommacs", grommacs)("siesta", siesta)("dataset", total); 
 
 
 	
@@ -190,7 +191,7 @@ namespace danzer{
 	{
 		{}, // 1mpas 
 		{}, // 2grims
-		{}, // 3qchem  
+		{3341*MB, 0, 0, 0}, // 3qchem  
 		{5515509760,	2143045504,	732649767,	857382650}, // 4roms 
 		{1780 * MB, 1780 * MB, 1780 * MB, 1780 * MB}, 
 		//{5515509760,	2143045504,	732649767,	857382650}, // 4roms -> temp: expr to abaqus 
@@ -198,10 +199,10 @@ namespace danzer{
 		{}, // 6lammps
 		{2803391651,	1302645772,	849047750,	544757172}, // 7qe
 		{}, // qmc 
-		{}, // cesm 
+		{8573*MB, 0, 0, 0}, // cesm 
 		{4828968097,	2358521078,	0,	958400427}, // msc
 		{}, // grommacs 
-		{} // siesta 
+		{14328*MB, 0, 0, 0} // siesta 
 	};
 
 	
@@ -274,7 +275,7 @@ namespace danzer{
 	static bool taskQueueCompare (const object_task* task1, const object_task * task2);
 	void object_task_load_balance(vector<vector<object_task*>>& task_queue);
     
-		
+	
 	void object_task_insert(object_task * task, vector<object_task*>); 
     char * object_task_queue_clear (vector<object_task *> &task_queue, int * task_num); 
     //string object_task_serialization (object_task * task); 
@@ -283,6 +284,11 @@ namespace danzer{
     void object_task_buffer_free (char *); 
     void Msg_Push(char * buffer, char * Msg, int idx); 
 
+	
+	// Utility Function
+	double calculateMean(vector<double> list);
+	double calculateStddev(vector<double> list, double mean);
+	void output_log(const char * log_file_name, double data1, double data2);
   };
 
     typedef struct {

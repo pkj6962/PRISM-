@@ -655,9 +655,6 @@ namespace danzer
 				//rc = MPI_Recv(buffer, 5, MPI_CHAR, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);	
 				rc = MPI_Recv(buffer, sizeof(object_task) * strlen(TERMINATION_MSG), MPI_CHAR, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);	
 		
-				// Temporary code: Bug should be fixed. 
-				//shutdown_flag = flag; 
-				//break; 
 
 			}	
 			if (rc != MPI_SUCCESS)
@@ -665,7 +662,8 @@ namespace danzer
 				cout << "receive error: " << errno << this->rank << endl; 
 			}
             if (strncmp(buffer, TERMINATION_MSG, strlen(TERMINATION_MSG)) == 0) {
-                shutdown_flag = true;
+                
+				shutdown_flag = true;
 				cout << "comm terminated " << rank << endl;
 				printf("rank\t%d\ttask_num\t%d\n", rank, test_total_task); 
                 break;
@@ -717,8 +715,11 @@ namespace danzer
         Buffer * buffer; 
         int ostPerRank = this->ostPerRank;
 
-		
+		// Code for Measuring mean, stddv of reading time 
+		vector <double> reading_time; 
+		double mean_reading_time, stddev_reading_time;
 
+		
 		// Code for LoadStandardization Evaluation
 		int NumWorkers = worldSize-1; 
 		int NumWorkerIdx = NumWorkers/24 -1;
@@ -762,7 +763,6 @@ namespace danzer
 
 			            cout << "error opening file errno: " << errno << endl;
                         break; 
-						//return NULL;
                     }
                     
 					for(uint64_t offset = metadata.start; offset < metadata.end; offset += metadata.interval)			
@@ -771,32 +771,38 @@ namespace danzer
                         buffer = &bufferpool[reader_idx];
 						
 						pthread_mutex_lock(&buffer->mutex);
-                //        while((reader_idx +1)% POOL_SIZE == worker_idx && buffer->filled) {
 						while(buffer->filled){
 							cout << "reader waiting for buffer to be emptied " << rank << endl;
-                       		pthread_cond_wait(&buffer->cond, &buffer->mutex);
+							pthread_cond_wait(&buffer->cond, &buffer->mutex);
 							cout << "reader escaped : " << rank << endl;	
                         }
-						//pthread_mutex_unlock(&buffer->mutex);
                     
 						
-						//   if(buffer!= nullptr && buffer->data != nullptr){
 			            uint64_t size = (offset + metadata.size > metadata.end)? (metadata.end - offset):metadata.size; 
 			            
 						
+						auto start = chrono::high_resolution_clock::now();
+
+				
 						ssize_t bytesRead = pread(fd, buffer->data, size, offset); 
                         if (bytesRead == -1) {
                             perror("Error reading file");
                             exit(1);
                         }
-                        //cout << "pread done: bytesRead = " << bytesRead << ", offset = " << offset << endl;
                         buffer->filled = 1;
                         if(bytesRead >= 0 && bytesRead < size)
                             buffer->data[bytesRead] = '\0';
                         buffer->size = bytesRead;
-                     //   }
 
                         
+						// Code for measuring reading time 
+						auto end = chrono::high_resolution_clock::now();
+						// Calculate the duration
+						chrono::duration<double> duration = end - start;
+						reading_time.push_back(duration.count()); 
+
+
+
                        
 						reader_idx = (reader_idx + 1) % POOL_SIZE;
 						pthread_cond_signal(&buffer->cond);	
@@ -818,11 +824,12 @@ namespace danzer
                     close(fd);
 
 					// Code for Load Standardization Evaluation
+					
 					if (standardized_task_done)
 					{
 						break; 
 					}
-				
+					
 
                 } // end of while loop 
 				
@@ -854,11 +861,63 @@ namespace danzer
 						printf("Some buffers are filled\n"); 
 				}
 				
+
+				double mean_realding_time = calculateMean(reading_time); 
+				double stddev_reading_time = calculateStddev(reading_time, mean_reading_time); 
+				output_log("mean_io_time.eval", mean_reading_time, stddev_reading_time); 
+				
+
                 break;
             }
         } // end of while loop 
 	return NULL;
     }
+
+	void Dedupe::output_log(const char * log_file_name, double data1, double data2)
+	{
+		
+		int NumWorkers = worldSize - 1; 
+		string log = log_file_name; 
+		ofstream ofs(log, ios::app); 
+		if (!ofs)
+		{
+			cerr << "Error opening output file\n"; 
+			exit(0); 
+		}
+
+		ofs << "object" << '\t' << NumWorkers << '\t' ; 
+		ofs << data1 << '\t' << data2 << '\n'; 
+
+
+	
+	}
+
+
+	double Dedupe::calculateMean(vector<double> list)
+	{
+		double mean, sum=0; 
+		for (double element: list)
+		{
+			sum += element;
+		}
+		mean = sum / list.size(); 
+
+		return mean;
+	}
+
+	double Dedupe::calculateStddev(vector<double> list, double mean)
+	{
+		double stddev, sum=0, dev;
+		for (double element: list)
+		{
+			dev = element - mean; 
+			sum += dev * dev; 
+		}
+		stddev = sum / list.size();
+		stddev = sqrt(stddev); 
+		return stddev;
+	}
+
 
     void* Dedupe::workerThread(int w_idx) {
 		static int work_cnt = 0; 
@@ -956,7 +1015,6 @@ namespace danzer
 
         if (rank == MASTER){
 
-			puts("aasdfaa"); 
             vector <vector <object_task*>> task_queue(OST_NUMBER); 
 			// vector<uint64_t> num_tasks_per_ost (OST_NUMBER, 0);
 
@@ -974,33 +1032,55 @@ namespace danzer
 
 
 			
+			//auto start = chrono::high_resolution_clock::now();
+		
+			// Code to iterate certain subdirectory
+			
+			for (const auto& dir_entry: filesystem::directory_iterator(directory_path)){
+				if (dir_entry.path().filename().string().find("overlap_test5") == string::npos)
+				{
+					cout << "Directory " << dir_entry.path().filename().string() <<" encountered\n"; 
+					continue; 
+				}
+				
+				cout << "We finally meet " << dir_entry.path().filename().string() << endl; 
+
+				for(const auto &dir_entry: filesystem::recursive_directory_iterator(directory_path + dir_entry.path().filename().string())){
+			
+			//   for (const auto &dir_entry: filesystem::recursive_directory_iterator(directory_path)){
+					total_file ++ ;
+
+				 if(filesystem::is_symlink(dir_entry)){
+					    //cout << "Symlink encountered\n"; 
+						continue; 
+					}
+				
+				    if(dir_entry.is_regular_file()){
+					    layout_analysis(dir_entry, task_queue);
+						continue;
+					}
+
+					unchecked_file ++ ; 
+				}
+
+			// code to iterate certain subdirectory
+			}
+
 			auto start = chrono::high_resolution_clock::now();
 			
-			for (const auto &dir_entry: filesystem::recursive_directory_iterator(directory_path)){
-				total_file ++ ;
-
-                if(filesystem::is_symlink(dir_entry)){
-                    //cout << "Symlink encountered\n"; 
-                    continue; 
-                }
-				
-                if(dir_entry.is_regular_file()){
-                    layout_analysis(dir_entry, task_queue);
-                    continue;
-                }
-
-                unchecked_file ++ ; 
-		}
-
 			if (load_balance)
 			{
 				object_task_load_balance(task_queue); 
-				puts("ss"); 
 			}
 			
 
+			auto end = chrono::high_resolution_clock::now();
 
-            //layout_end_of_process(task_queue); 
+			// Calculate the duration
+			 chrono::duration<double> duration = end - start;
+			cout << "load balance elapsed: " << duration.count() << endl; 
+
+            layout_end_of_process(task_queue); 
 
 
 			
@@ -1016,7 +1096,6 @@ namespace danzer
 
 
 
-			puts("kk"); 
 
 
 			printf("unchecked file: %d/%d\n", unchecked_file, total_file); 
@@ -1056,7 +1135,7 @@ namespace danzer
                 cout << "error: thread creation " << rc1 << endl;
                 exit(-1);
             }
-	/*	
+	
             int rc2 = pthread_create(&reader, NULL, Dedupe::readerThreadStarter, this);
             if(rc2) {
                 cout << "error: thread creation " << rc2 << endl;
@@ -1077,13 +1156,13 @@ namespace danzer
                 }
             }	
 	
-	*/
+	
         (void)pthread_join(comm, NULL);
       
-	/*
+	
 		(void)pthread_join(reader, NULL);
-        // // (void)pthread_join(worker, NULL);
-
+		  // // (void)pthread_join(worker, NULL);
+	
 		for(int i = 0; i < numWorkers; i++) {
             int rc = pthread_join(workerThreads[i], NULL);
             if (rc){
@@ -1091,14 +1170,12 @@ namespace danzer
                 exit(-1);
             }
         }		
-		
-    */
+	
+    
         }
 	
         // Finalize MPI environment
-		puts("zz"); 
         MPI_Finalize();
-		puts("ww"); 
         return rank;
 
     }
@@ -1318,7 +1395,7 @@ int main(int argc, char **argv)
 			cerr << "Error opening output file\n"; 
 			exit(0); 
 		}
-		ofs << Dataset << '\t' << numProc << '\t' << "object" << '\t' << duration.count() << endl;  
+		ofs << Dataset << '\t' << numProc << '\t' << "object" << '\t' << ((load_balance)? "lb":"none") << '\t' << duration.count() << endl;  
 		
 		
 			

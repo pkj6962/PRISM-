@@ -741,6 +741,8 @@ namespace danzer
 			exit(0); 
 		}
 		
+		// Code for measuring reading time 
+		auto thread_start_time = chrono::high_resolution_clock::now();
 
 		printf("standardized data size: %lld\n", standardized_load_size); 
         
@@ -861,18 +863,41 @@ namespace danzer
 						printf("Some buffers are filled\n"); 
 				}
 				
-				if (rank % 10 == 0)
-				{
+				//if (rank % 10 == 0)
+				//{
 					double mean_reading_time = calculateMean(reading_time); 
 					double stddev_reading_time = calculateStddev(reading_time, mean_reading_time); 
 					output_log("mean_io_time.eval", mean_reading_time, stddev_reading_time); 
-				}
+				//}
 
-                break;
+				// Code for measuring reading time 
+				auto thread_end_time = chrono::high_resolution_clock::now();
+				chrono::duration<double> duration = thread_end_time - thread_start_time;
+				double total_thread_time = duration.count(); 
+
+				output_log("time_breakdown", "reader", rank, total_thread_time); 
+                
+				break;
             }
         } // end of while loop 
 	return NULL;
     }
+
+	void Dedupe::output_log(const char * log_file_name, const char *thread_type, int rank, double exec_time)
+	{
+		
+		int NumWorkers = worldSize - 1; 
+		string log = log_file_name; 
+		ofstream ofs(log, ios::app); 
+		if (!ofs)
+		{
+			cerr << "Error opening output file\n"; 
+			exit(0); 
+		}
+
+		ofs << "object" << '\t' << thread_type << '\t' ; 
+		ofs << rank << '\t' << exec_time << '\n'; 
+	}
 
 	void Dedupe::output_log(const char * log_file_name, double data1, double data2)
 	{
@@ -924,6 +949,9 @@ namespace danzer
 		static int work_cnt = 0; 
 		int worker_idx = w_idx;
 		
+		// Code for measuring reading time 
+		auto thread_start_time = chrono::high_resolution_clock::now();
+		
 		while (1) {
 		    Buffer *buffer = &bufferpool[worker_idx];
 		    pthread_mutex_lock(&buffer->mutex);
@@ -958,14 +986,26 @@ namespace danzer
                     			allBuffersDone = false;
                     			break;
                 		}
-            		}
+            }
 
 				if (allBuffersDone){
 					cout << "obj cnt: " << obj_cnt << endl;
 					cout << "worker done " << rank << endl; 
 					printf("work_cnt %d: %d\n", rank, work_cnt); 
+				
+					
+					// Code for measuring reading time 
+					auto thread_end_time = chrono::high_resolution_clock::now();
+					chrono::duration<double> duration = thread_end_time - thread_start_time;
+					double total_thread_time = duration.count(); 
+
+					output_log("time_breakdown", "worker", rank, total_thread_time); 
+					
+					
 					break;
 				}
+			
+			
 			} 
 		}
         printf("rank\t%d\tchunk_cnt\t%d\n", rank, test_chunk_cnt); 

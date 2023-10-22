@@ -861,11 +861,12 @@ namespace danzer
 						printf("Some buffers are filled\n"); 
 				}
 				
-
-				double mean_realding_time = calculateMean(reading_time); 
-				double stddev_reading_time = calculateStddev(reading_time, mean_reading_time); 
-				output_log("mean_io_time.eval", mean_reading_time, stddev_reading_time); 
-				
+				if (rank % 10 == 0)
+				{
+					double mean_reading_time = calculateMean(reading_time); 
+					double stddev_reading_time = calculateStddev(reading_time, mean_reading_time); 
+					output_log("mean_io_time.eval", mean_reading_time, stddev_reading_time); 
+				}
 
                 break;
             }

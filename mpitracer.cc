@@ -870,12 +870,22 @@ namespace danzer
 					output_log("mean_io_time.eval", mean_reading_time, stddev_reading_time); 
 				//}
 
+				/*
+				if (rank == 17)
+				{
+					for (int i = 0; i < 1024; i ++)
+					{
+						output_log("all_pread_time.eval", i, reading_time[i]); 
+					}
+				}
+				*/
+
 				// Code for measuring reading time 
 				auto thread_end_time = chrono::high_resolution_clock::now();
 				chrono::duration<double> duration = thread_end_time - thread_start_time;
 				double total_thread_time = duration.count(); 
 
-				output_log("time_breakdown", "reader", rank, total_thread_time); 
+				output_log("time_breakdown.eval", "reader", rank, total_thread_time); 
                 
 				break;
             }
@@ -999,7 +1009,7 @@ namespace danzer
 					chrono::duration<double> duration = thread_end_time - thread_start_time;
 					double total_thread_time = duration.count(); 
 
-					output_log("time_breakdown", "worker", rank, total_thread_time); 
+					output_log("time_breakdown.eval", "worker", rank, total_thread_time); 
 					
 					
 					break;
@@ -1078,7 +1088,7 @@ namespace danzer
 			// Code to iterate certain subdirectory
 			
 			for (const auto& dir_entry: filesystem::directory_iterator(directory_path)){
-				if (dir_entry.path().filename().string().find("overlap_test5") == string::npos)
+				if (dir_entry.path().filename().string().find("overlap_test51") == string::npos)
 				{
 					cout << "Directory " << dir_entry.path().filename().string() <<" encountered\n"; 
 					continue; 

@@ -804,6 +804,7 @@ namespace danzer
 						reading_time.push_back(duration.count()); 
 
 
+						posix_fadvise(fd, 0, 0, POSIX_FADV_DONTNEED);
 
                        
 						reader_idx = (reader_idx + 1) % POOL_SIZE;
@@ -844,7 +845,7 @@ namespace danzer
 
 			
 			// Ending condition for standardized task evaluation 
-			//if (shutdown_flag || standardized_task_done){
+			//if (shutdownwordkerNumbere_flag || standardized_task_done){
 			// Ending condition for normal situaion
             if (shutdown_flag && !taskFound) {
 				reader_done = true;
@@ -863,12 +864,14 @@ namespace danzer
 						printf("Some buffers are filled\n"); 
 				}
 				
-				//if (rank % 10 == 0)
-				//{
+				
+				int divider = NumWorkers / 4;
+				if (rank % divider == 1)
+				{
 					double mean_reading_time = calculateMean(reading_time); 
 					double stddev_reading_time = calculateStddev(reading_time, mean_reading_time); 
 					output_log("mean_io_time.eval", mean_reading_time, stddev_reading_time); 
-				//}
+				}
 
 				/*
 				if (rank == 17)
@@ -1088,7 +1091,7 @@ namespace danzer
 			// Code to iterate certain subdirectory
 			
 			for (const auto& dir_entry: filesystem::directory_iterator(directory_path)){
-				if (dir_entry.path().filename().string().find("overlap_test51") == string::npos)
+				if (dir_entry.path().filename().string().find("overlap_test52") == string::npos)
 				{
 					cout << "Directory " << dir_entry.path().filename().string() <<" encountered\n"; 
 					continue; 

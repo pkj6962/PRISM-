@@ -870,9 +870,9 @@ namespace danzer
             // Wait until buffer is filled
         //    		if(worker_idx == reader_idx && !buffer->filled){
 			while(!buffer->filled && !reader_done){
-				cout << "worker waiting to be filled: " << rank << endl;
+				//cout << "worker waiting to be filled: " << rank << endl;
 				pthread_cond_wait(&buffer->cond, &buffer->mutex);
-				cout << "worker woke up!\n"; 
+				//cout << "worker woke up!\n"; 
 			}
 			//pthread_mutex_unlock(&buffer->mutex);
             if(reader_done && !buffer->filled){

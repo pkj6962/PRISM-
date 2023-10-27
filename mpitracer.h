@@ -33,8 +33,8 @@
 #define BUFFER_SIZE 2097152 // 2M buffer
 #define POOL_SIZE 100 // 100 buffers in buffer pool
 #define OST_NUMBER 24
-//#define TASK_QUEUE_FULL 4
-#define TASK_QUEUE_FULL 1 
+#define TASK_QUEUE_FULL 4
+//#define TASK_QUEUE_FULL 1 
 
 #define OST_QUEUE_FULL 50
 

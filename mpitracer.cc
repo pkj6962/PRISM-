@@ -624,6 +624,8 @@ namespace danzer
 
         static int test_total_task = 0; 
         
+		auto start = chrono::high_resolution_clock::now();
+		
 		//char * buffer = (char*)malloc(sizeof(object_task) * 100000);
 		char * buffer = (char*)malloc(sizeof(object_task) * TASK_QUEUE_FULL);
         if (buffer == NULL)
@@ -664,7 +666,14 @@ namespace danzer
             if (strncmp(buffer, TERMINATION_MSG, strlen(TERMINATION_MSG)) == 0) {
                 
 				shutdown_flag = true;
-				cout << "comm terminated " << rank << endl;
+
+				// Code for measuring reading time 
+				auto end = chrono::high_resolution_clock::now();
+				// Calculate the duration
+				chrono::duration<double> duration = end - start;
+
+				cout << "comm terminated\t" << rank << '\t' << duration.count() << endl;
+
 				printf("rank\t%d\ttask_num\t%d\n", rank, test_total_task); 
                 break;
             }
@@ -971,9 +980,9 @@ namespace danzer
             // Wait until buffer is filled
         //    		if(worker_idx == reader_idx && !buffer->filled){
 			while(!buffer->filled && !reader_done){
-				cout << "worker waiting to be filled: " << rank << endl;
+				//cout << "worker waiting to be filled: " << rank << endl;
 				pthread_cond_wait(&buffer->cond, &buffer->mutex);
-				cout << "worker woke up!\n"; 
+				//cout << "worker woke up!\n"; 
 			}
 			//pthread_mutex_unlock(&buffer->mutex);
             if(reader_done && !buffer->filled){

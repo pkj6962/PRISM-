@@ -730,7 +730,8 @@ namespace danzer
 
 		
 		// Code for LoadStandardization Evaluation
-		int NumWorkers = worldSize-1; 
+		//int NumWorkers = worldSize-1; 
+		int NumWorkers = worldSize-NUMMASTERS; 
 		int NumWorkerIdx = NumWorkers/24 -1;
 		int datasetIdx = dataset_map.find(Dataset.c_str())->second; 
 		
@@ -908,7 +909,8 @@ namespace danzer
 	void Dedupe::output_log(const char * log_file_name, const char *thread_type, int rank, double exec_time)
 	{
 		
-		int NumWorkers = worldSize - 1; 
+		//int NumWorkers = worldSize - 1; 
+		int NumWorkers = worldSize - NUMMASTERS; 
 		string log = log_file_name; 
 		ofstream ofs(log, ios::app); 
 		if (!ofs)
@@ -924,7 +926,8 @@ namespace danzer
 	void Dedupe::output_log(const char * log_file_name, double data1, double data2)
 	{
 		
-		int NumWorkers = worldSize - 1; 
+		//int NumWorkers = worldSize - 1; 
+		int NumWorkers = worldSize - NUMMASTERS; 
 		string log = log_file_name; 
 		ofstream ofs(log, ios::app); 
 		if (!ofs)
@@ -1069,6 +1072,9 @@ namespace danzer
         int rank, worldSize;
         int unchecked_file = 0;
 	    int numWorkers = this->numWorkers;
+		
+
+		int file_idx = 0; 
 
         MPI_Comm_size(MPI_COMM_WORLD, &worldSize);
         MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -1076,29 +1082,20 @@ namespace danzer
 		this->rank = rank;
         cout << "Current process rank: " << this->rank << endl;
 
-        if (rank == MASTER){
+		int numProc = worldSize - NUMMASTERS; 
+		printf("numProc: %d %d\n", worldSize, numProc);
+		if (rank == MASTER || rank > numProc){
+        //if (rank == MASTER){
+
+
+			int master_idx = (rank == MASTER)? MASTER: rank-numProc; 
+			int CntTaskGenerated = 0; 
 
             vector <vector <object_task*>> task_queue(OST_NUMBER); 
-			// vector<uint64_t> num_tasks_per_ost (OST_NUMBER, 0);
 
-
-
-			// test purpose code: load_balance test 
-			size_per_rank = (uint64_t *)malloc(sizeof(uint64_t) * worldSize); 
-			if (size_per_rank == NULL)
-			{
-				cout << "memory allocation error";
-				exit(1); 
-			}
-			memset(size_per_rank, 0, sizeof(uint64_t) * worldSize); 
-
-
-
-			
 			auto start = chrono::high_resolution_clock::now();
 		
-			// Code to iterate certain subdirectory
-			
+			// Code to iterate certain subdirectory	
 			for (const auto& dir_entry: filesystem::directory_iterator(directory_path)){
 				if (dir_entry.path().filename().string().find("testdir") == string::npos)
 				{
@@ -1106,13 +1103,9 @@ namespace danzer
 					continue; 
 				}
 				
-				cout << "We finally meet " << dir_entry.path().filename().string() << endl; 
+				cout << rank << '\t' << "We finally meet " << dir_entry.path().filename().string() << endl; 
 				static int file_cnt = 0; 
 				for(const auto &dir_entry: filesystem::recursive_directory_iterator(directory_path + dir_entry.path().filename().string())){
-				
-					
-					auto start = chrono::high_resolution_clock::now();
-
 			//   for (const auto &dir_entry: filesystem::recursive_directory_iterator(directory_path)){
 					total_file ++ ;
 
@@ -1122,7 +1115,13 @@ namespace danzer
 					}
 				
 				    if(dir_entry.is_regular_file()){
-						layout_analysis(dir_entry, task_queue);
+						//file_idx = parse_file_idx(dir_entry.path()); 
+						if (file_idx % NUMMASTERS == master_idx)
+						{
+							layout_analysis(dir_entry, task_queue);
+							CntTaskGenerated ++; 
+						}
+						file_idx ++; 
 						continue;
 					}
 					
@@ -1160,7 +1159,8 @@ namespace danzer
 			// Calculate the duration
 			 chrono::duration<double> duration = end - start;
 			cout << "master end\t" << duration.count() << endl; 
-
+			
+			printf("end master\t%d\ttask\t%d\n", master_idx, CntTaskGenerated );
 
 
 			printf("unchecked file: %d/%d\n", unchecked_file, total_file); 
@@ -1171,6 +1171,7 @@ namespace danzer
 
         }
         else{
+	
             // Mutex initialization
             for (int i = 0; i < POOL_SIZE; i++) {
 				bufferpool[i].filled = 0;
@@ -1178,10 +1179,10 @@ namespace danzer
                 pthread_cond_init(&bufferpool[i].cond, NULL);
             }
 
-            if (OST_NUMBER > worldSize-1)
+            if (OST_NUMBER > numProc)
             {
-                int ostPerRank = OST_NUMBER / (worldSize-1);
-                int remainder = OST_NUMBER % (worldSize-1);
+                int ostPerRank = OST_NUMBER / (numProc);
+                int remainder = OST_NUMBER % numProc;
                 if(rank < remainder){
                     ostPerRank++;
                 }
@@ -1221,10 +1222,8 @@ namespace danzer
                 }
             }	
 	
-	
         (void)pthread_join(comm, NULL);
       
-
 		(void)pthread_join(reader, NULL);
 		  // // (void)pthread_join(worker, NULL);
 	
@@ -1236,7 +1235,7 @@ namespace danzer
             }
         }		
 	
-
+	
         }
 	
         // Finalize MPI environment
@@ -1244,6 +1243,20 @@ namespace danzer
         return rank;
 
     }
+
+	int Dedupe::parse_file_idx(string file_path)
+	{
+		
+		regex indexRegex(R"(\d+$)"); // Match one or more digits at the end of the string
+		smatch match;
+		int file_idx; 
+		if (regex_search(file_path, match, indexRegex)) {
+			string indexStr = match[0];
+			file_idx = std::stoi(indexStr);
+			return file_idx;
+		}
+		return -1;
+	}
 
 
 	void Dedupe::test_load_balance_per_rank()
@@ -1455,6 +1468,7 @@ int main(int argc, char **argv)
 		
 		string result= "standardized_load_result.eval"; 
 		ofstream ofs(result, ios::out | ios::app); 
+	
 		if (!ofs)
 		{
 			cerr << "Error opening output file\n"; 

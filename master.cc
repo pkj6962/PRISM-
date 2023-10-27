@@ -8,9 +8,8 @@ using namespace std;
 namespace danzer {
 
 // This module reads layouts of a single file, generates and pushes tasks into corresponding Task_queue. If Task_queue is full, it sends tasks to Reader Process through MPI_SEND command. 
+//void Dedupe::layout_analysis(filesystem::directory_entry entry, vector<vector<object_task*>> &task_queue, int master_idx){
 void Dedupe::layout_analysis(filesystem::directory_entry entry, vector<vector<object_task*>> &task_queue){
-//void layout_analysis(fs::directory_entry entry){
-//int main(){
 	
 	// static vector<uint64_t> num_tasks_per_ost (OST_NUMBER, 0);
 	
@@ -27,7 +26,7 @@ void Dedupe::layout_analysis(filesystem::directory_entry entry, vector<vector<ob
 	struct stat64 sb; 
 	object_task * task;
 	int worldSize = this->worldSize; 
-	int worker_number = worldSize - 1; 
+	int worker_number = worldSize - NUMMASTERS; 
 
 	int readerNum = 10; // TODO should be checked during runtime
 	
@@ -35,8 +34,9 @@ void Dedupe::layout_analysis(filesystem::directory_entry entry, vector<vector<ob
 
 	//vector <vector <struct object_task*>> task_queue(OST_NUMBER); 
 	
-	static int file_idx = 0;
 	int obj_idx = 0; 
+	
+
 
 	// Get layouts of the file 
 	struct llapi_layout * layout; 
@@ -120,8 +120,9 @@ void Dedupe::layout_analysis(filesystem::directory_entry entry, vector<vector<ob
 
 			}
 
-			size_per_rank[dest_rank] += object_task_size;
+			//size_per_rank[dest_rank] += object_task_size;
 			
+		
 			
 
 			// If task queue is full, then we send the tasks in the queue to corresponding Reader Process. 
@@ -148,6 +149,7 @@ void Dedupe::layout_analysis(filesystem::directory_entry entry, vector<vector<ob
 				}
 				num_tasks_per_ost[task_ost] += 1; 
 				
+				
 
 				// Send Msg to Read Processes(whose rank is OST_NUMBER & Read_Process_Num)
 				// MPI_SEND
@@ -163,6 +165,8 @@ void Dedupe::layout_analysis(filesystem::directory_entry entry, vector<vector<ob
 				//free(Msg); 
 			//	delete(Msg); 
 				delete[] Msg;
+
+		
 
 			}	
 			//delete task;
@@ -185,7 +189,7 @@ void Dedupe::layout_end_of_process(vector<vector<object_task*>> &task_queue){
 	char termination_task[20];
 	strcpy(termination_task, TERMINATION_MSG);
 
-
+	int worker_number; 
 	for (int ost = 0; ost < OST_NUMBER; ost++)
 	{
 		char * Msg = object_task_queue_clear(task_queue[ost], &task_num); 
@@ -195,7 +199,8 @@ void Dedupe::layout_end_of_process(vector<vector<object_task*>> &task_queue){
 		}	
 		
 		int dest_rank, num_binded_worker; 
-		int worker_number = worldSize - 1; 
+		//int worker_number = worldSize - 1; 
+		worker_number = worldSize - NUMMASTERS; 
 
 		if (OST_NUMBER >= worker_number)
 			dest_rank = ost % worker_number + 1; 
@@ -216,12 +221,15 @@ void Dedupe::layout_end_of_process(vector<vector<object_task*>> &task_queue){
 		object_task_buffer_free(Msg); 
 
 	}
-	for(int i=1; i < worldSize; i++) {
-    	MPI_Ssend(termination_task, sizeof(TERMINATION_MSG), MPI_CHAR, i, 0, MPI_COMM_WORLD);
-		cout << "termination msg sent\n";
-	}
-
+	//for(int i=1; i < worldSize; i++) {
 	
+	if (rank == MASTER){
+		for(int i=1; i <= worker_number; i++) {
+			MPI_Ssend(termination_task, sizeof(TERMINATION_MSG), MPI_CHAR, i, 0, MPI_COMM_WORLD);
+			cout << "termination msg sent\n";
+		}
+	}
+	/*
 	string ost_size_distribution = "ost_size_distribution.eval";  
 	ofstream ofs(ost_size_distribution, ios::app); 
 	if (!ofs)
@@ -235,6 +243,7 @@ void Dedupe::layout_end_of_process(vector<vector<object_task*>> &task_queue){
 	{
 		ofs << size_per_ost[i] << endl; 
 	}
+	*/
 
 }
 
@@ -445,7 +454,8 @@ void  Dedupe:: object_task_load_balance(vector<vector<object_task*>>& task_queue
 			char * Msg = object_task_queue_clear (task_queue[i], &task_num); 
 
 			int dest_rank; 
-			int worker_number = worldSize - 1; 
+			//int worker_number = worldSize - 1; 
+			int worker_number = worldSize - NUMMASTERS; 
 			if (OST_NUMBER >= worker_number)
 				dest_rank = i % worker_number + 1; 
 			int rc = MPI_Ssend(Msg, sizeof(object_task) * task_num, MPI_CHAR, dest_rank, task_num, MPI_COMM_WORLD); 

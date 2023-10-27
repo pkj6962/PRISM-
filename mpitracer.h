@@ -22,6 +22,7 @@
 #include <numeric>
 #include <unordered_map>
 #include <queue>
+#include <regex>
 #include <sys/stat.h>
 #include <atomic>
 #include <lustre/lustreapi.h>
@@ -36,11 +37,15 @@
 #define TASK_QUEUE_FULL 4
 //#define TASK_QUEUE_FULL 1 
 
+
 #define OST_QUEUE_FULL 50
 
 
 #define MAX_FILE_PATH_LEN 320 //320
 #define MASTER 0
+
+#define NUMMASTERS 10
+
 #define TERMINATION_MSG "TERMINATION"
 #define MB (uint64_t)1048576
 
@@ -159,7 +164,8 @@ namespace danzer{
     int rank = 0;
     int obj_cnt = 0;
     int numWorkers = 1;
-	  uint64_t task_cnt = 0;
+	int numMasters = 1; 
+	uint64_t task_cnt = 0;
 	  uint64_t task_cnt_per_rank = 0; 
 
 	// variable for load balance functionality
@@ -262,7 +268,11 @@ namespace danzer{
     object_task dequeue(OST_queue *ost_q);
     void initializeq(int ostPerRank);
 
-
+	// Multiple Master  code 
+	int parse_file_idx(string file_path);
+	
+	
+	
 	void test_load_balance_per_rank();
 
     //void layout_analysis(std::filesystem::directory_entry entry); 

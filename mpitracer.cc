@@ -980,7 +980,7 @@ namespace danzer
             // Wait until buffer is filled
         //    		if(worker_idx == reader_idx && !buffer->filled){
 			while(!buffer->filled && !reader_done){
-				//cout << "worker waiting to be filled: " << rank << endl;
+				cout << "worker waiting to be filled: " << rank << endl;
 				pthread_cond_wait(&buffer->cond, &buffer->mutex);
 				//cout << "worker woke up!\n"; 
 			}
@@ -1095,21 +1095,24 @@ namespace danzer
 
 
 			
-			//auto start = chrono::high_resolution_clock::now();
+			auto start = chrono::high_resolution_clock::now();
 		
 			// Code to iterate certain subdirectory
 			
 			for (const auto& dir_entry: filesystem::directory_iterator(directory_path)){
-				if (dir_entry.path().filename().string().find("overlap_test52") == string::npos)
+				if (dir_entry.path().filename().string().find("testdir") == string::npos)
 				{
 					cout << "Directory " << dir_entry.path().filename().string() <<" encountered\n"; 
 					continue; 
 				}
 				
 				cout << "We finally meet " << dir_entry.path().filename().string() << endl; 
-
+				static int file_cnt = 0; 
 				for(const auto &dir_entry: filesystem::recursive_directory_iterator(directory_path + dir_entry.path().filename().string())){
-			
+				
+					
+					auto start = chrono::high_resolution_clock::now();
+
 			//   for (const auto &dir_entry: filesystem::recursive_directory_iterator(directory_path)){
 					total_file ++ ;
 
@@ -1119,17 +1122,17 @@ namespace danzer
 					}
 				
 				    if(dir_entry.is_regular_file()){
-					    layout_analysis(dir_entry, task_queue);
+						layout_analysis(dir_entry, task_queue);
 						continue;
 					}
-
+					
 					unchecked_file ++ ; 
 				}
 
 			// code to iterate certain subdirectory
 			}
 
-			auto start = chrono::high_resolution_clock::now();
+			//auto start = chrono::high_resolution_clock::now();
 			
 			if (load_balance)
 			{
@@ -1137,11 +1140,6 @@ namespace danzer
 			}
 			
 
-			auto end = chrono::high_resolution_clock::now();
-
-			// Calculate the duration
-			 chrono::duration<double> duration = end - start;
-			cout << "load balance elapsed: " << duration.count() << endl; 
 
             layout_end_of_process(task_queue); 
 
@@ -1158,6 +1156,10 @@ namespace danzer
             */
 
 
+			auto end = chrono::high_resolution_clock::now();
+			// Calculate the duration
+			 chrono::duration<double> duration = end - start;
+			cout << "master end\t" << duration.count() << endl; 
 
 
 
@@ -1222,7 +1224,7 @@ namespace danzer
 	
         (void)pthread_join(comm, NULL);
       
-	
+
 		(void)pthread_join(reader, NULL);
 		  // // (void)pthread_join(worker, NULL);
 	
@@ -1234,7 +1236,7 @@ namespace danzer
             }
         }		
 	
-    
+
         }
 	
         // Finalize MPI environment

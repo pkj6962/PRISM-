@@ -213,7 +213,8 @@ void Dedupe::layout_end_of_process(vector<vector<object_task*>> &task_queue){
 			if (dest_rank == 0)
 				dest_rank = worker_number; 
 		}	
-		int rc = MPI_Ssend(Msg, sizeof(object_task) * task_num, MPI_CHAR, dest_rank, task_num, MPI_COMM_WORLD); 
+		int rc = MPI_Send(Msg, sizeof(object_task) * task_num, MPI_CHAR, dest_rank, task_num, MPI_COMM_WORLD); 
+		//int rc = MPI_Ssend(Msg, sizeof(object_task) * task_num, MPI_CHAR, dest_rank, task_num, MPI_COMM_WORLD); 
 		// int rc = MPI_Ssend(Msg, sizeof(object_task) * task_num, MPI_CHAR, ost % (worldSize-1) + 1, task_num, MPI_COMM_WORLD); 
 		//int rc = MPI_Ssend(Msg, s	izeof(object_task) * TASK_QUEUE_FULL, MPI_CHAR, ost % (worldSize-1) + 1, task_num, MPI_COMM_WORLD); 
 		if (rc != MPI_SUCCESS)
@@ -223,12 +224,15 @@ void Dedupe::layout_end_of_process(vector<vector<object_task*>> &task_queue){
 	}
 	//for(int i=1; i < worldSize; i++) {
 	
-	if (rank == MASTER){
+	//if (rank == MASTER){
 		for(int i=1; i <= worker_number; i++) {
-			MPI_Ssend(termination_task, sizeof(TERMINATION_MSG), MPI_CHAR, i, 0, MPI_COMM_WORLD);
+			MPI_Send(termination_task, sizeof(TERMINATION_MSG), MPI_CHAR, i, 0, MPI_COMM_WORLD);
+			//MPI_Ssend(termination_task, sizeof(TERMINATION_MSG), MPI_CHAR, i, 0, MPI_COMM_WORLD);
 			cout << "termination msg sent\n";
 		}
-	}
+	//}
+	
+
 	/*
 	string ost_size_distribution = "ost_size_distribution.eval";  
 	ofstream ofs(ost_size_distribution, ios::app); 

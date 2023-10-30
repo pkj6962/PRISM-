@@ -623,7 +623,9 @@ namespace danzer
         MPI_Status status;
 
         static int test_total_task = 0; 
-        
+		int termRecvCnt = 0; 
+
+
 		auto start = chrono::high_resolution_clock::now();
 		
 		//char * buffer = (char*)malloc(sizeof(object_task) * 100000);
@@ -665,17 +667,24 @@ namespace danzer
 			}
             if (strncmp(buffer, TERMINATION_MSG, strlen(TERMINATION_MSG)) == 0) {
                 
-				shutdown_flag = true;
+				
+				termRecvCnt ++; 
+				printf("termRecvCnt: %d\n", termRecvCnt); 
+				if (termRecvCnt == NUMMASTERS - DANGLINGMASTER)
+				{
+				
+					shutdown_flag = true;
 
-				// Code for measuring reading time 
-				auto end = chrono::high_resolution_clock::now();
-				// Calculate the duration
-				chrono::duration<double> duration = end - start;
+					// Code for measuring reading time 
+					auto end = chrono::high_resolution_clock::now();
+					// Calculate the duration
+					chrono::duration<double> duration = end - start;
 
-				cout << "comm terminated\t" << rank << '\t' << duration.count() << endl;
+					cout << "comm terminated\t" << rank << '\t' << duration.count() << endl;
 
-				printf("rank\t%d\ttask_num\t%d\n", rank, test_total_task); 
-                break;
+					printf("rank\t%d\ttask_num\t%d\n", rank, test_total_task); 
+					break;
+				}
             }
             //MPI_Get_count(&status, MPI_CHAR, &msg_cnt);  
             object_tasks_decomposition(buffer, task_num);
@@ -1084,11 +1093,23 @@ namespace danzer
 
 		int numProc = worldSize - NUMMASTERS; 
 		printf("numProc: %d %d\n", worldSize, numProc);
-		if (rank == MASTER || rank > numProc){
+
+		char processor_name[300];
+		int name_len;
+		MPI_Get_processor_name(processor_name, &name_len);
+		printf("AllocatedNode\trank\t%d\t%s\n", rank, processor_name);
+
+		if (rank == MASTER)
+		//if (rank == MASTER || rank == 49)
+		{
+			// do_nothing ()
+		}
+		else if (rank > numProc){
+		//if (rank == MASTER || rank > numProc){
         //if (rank == MASTER){
-
-
-			int master_idx = (rank == MASTER)? MASTER: rank-numProc; 
+			
+			int master_idx = (rank == MASTER)? MASTER: rank-numProc - DANGLINGMASTER; 
+			//int master_idx = (rank == MASTER)? MASTER: rank-numProc - 1; 
 			int CntTaskGenerated = 0; 
 
             vector <vector <object_task*>> task_queue(OST_NUMBER); 
@@ -1096,6 +1117,8 @@ namespace danzer
 			auto start = chrono::high_resolution_clock::now();
 		
 			// Code to iterate certain subdirectory	
+			
+			/*
 			for (const auto& dir_entry: filesystem::directory_iterator(directory_path)){
 				if (dir_entry.path().filename().string().find("testdir") == string::npos)
 				{
@@ -1106,17 +1129,18 @@ namespace danzer
 				cout << rank << '\t' << "We finally meet " << dir_entry.path().filename().string() << endl; 
 				static int file_cnt = 0; 
 				for(const auto &dir_entry: filesystem::recursive_directory_iterator(directory_path + dir_entry.path().filename().string())){
-			//   for (const auto &dir_entry: filesystem::recursive_directory_iterator(directory_path)){
+			
+			*/
+			for (const auto &dir_entry: filesystem::recursive_directory_iterator(directory_path)){
 					total_file ++ ;
 
 				 if(filesystem::is_symlink(dir_entry)){
 					    //cout << "Symlink encountered\n"; 
 						continue; 
 					}
-				
 				    if(dir_entry.is_regular_file()){
 						//file_idx = parse_file_idx(dir_entry.path()); 
-						if (file_idx % NUMMASTERS == master_idx)
+						if (file_idx % (NUMMASTERS-DANGLINGMASTER) == master_idx)
 						{
 							layout_analysis(dir_entry, task_queue);
 							CntTaskGenerated ++; 
@@ -1129,7 +1153,7 @@ namespace danzer
 				}
 
 			// code to iterate certain subdirectory
-			}
+			//}
 
 			//auto start = chrono::high_resolution_clock::now();
 			
@@ -1139,10 +1163,7 @@ namespace danzer
 			}
 			
 
-
             layout_end_of_process(task_queue); 
-
-
 			
 			//test_load_balance_per_rank(); 
 			
@@ -1158,7 +1179,7 @@ namespace danzer
 			auto end = chrono::high_resolution_clock::now();
 			// Calculate the duration
 			 chrono::duration<double> duration = end - start;
-			cout << "master end\t" << duration.count() << endl; 
+			cout << "master end\t" << master_idx << '\t' <<  duration.count() << endl; 
 			
 			printf("end master\t%d\ttask\t%d\n", master_idx, CntTaskGenerated );
 

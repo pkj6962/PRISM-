@@ -10,7 +10,7 @@ PRISM은 대규모 HPC 환경에서 발생하는 두 가지 주요 문제:
 ## 디자인
 
 
-<img src="doc/img/swiftload_architecture.png" width="600"/>
+<img src="doc/img/swiftload_overview.png" width="600"/>
 
 
 ### 주요 구성 요소
